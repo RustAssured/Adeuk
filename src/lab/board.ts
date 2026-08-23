@@ -620,6 +620,24 @@ export class Bord {
     ctx.arc(p.x, p.y, s * 1.6, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    // Het model uit assets/Seat 3D.glb. Anders dan de Nexus staat de Zetel
+    // nergens op: hij zweeft, en deint heel langzaam. Onder hem alleen een
+    // schaduw op de tegel, met lucht ertussen.
+    const figuur = this.art.figuurZetel;
+    if (!figuur) return;
+    const zweef = Math.sin(tijd / 2600) * s * 0.045;
+    const b = s * 1.62;
+    const h = (b * figuur.height) / figuur.width;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.42)';
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y + s * 0.58, b * 0.24, s * 0.075, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowColor = 'rgba(201,164,74,0.35)';
+    ctx.shadowBlur = s * 0.4;
+    ctx.drawImage(figuur, p.x - b / 2, p.y + zweef - h * 0.5, b, h);
+    ctx.restore();
   }
 
   // ------------------------------------------------- de toestand van een tegel
@@ -1110,6 +1128,24 @@ export class Bord {
     ctx.arc(p.x, p.y, s * 1.7, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    // Het model uit assets/Nexus3d.glb, één keer uitgerenderd. Hij hééft een
+    // sokkel — die staat in het model — dus hij zet zijn voet op de tegel waar
+    // hij staat, in tegenstelling tot de Zetel, die zweeft.
+    const figuur = this.art.figuurNexus;
+    if (figuur) {
+      const b = s * 1.68;
+      const h = (b * figuur.height) / figuur.width;
+      // de sokkel komt onderaan de afbeelding, dus die zetten we op de tegel
+      const grond = p.y + s * 0.4;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.75)';
+      ctx.shadowBlur = s * 0.32;
+      ctx.shadowOffsetY = s * 0.06;
+      ctx.drawImage(figuur, p.x - b / 2, grond - h, b, h);
+      ctx.restore();
+      return;
+    }
 
     const img = this.art.nexus;
     const d = s * 1.42;

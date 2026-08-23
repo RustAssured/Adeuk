@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8" />
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "/node_modules/three/build/three.module.js",
+      "three/addons/": "/node_modules/three/examples/jsm/"
+    }
+  }
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  const N = 1024;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setSize(N, N);
+  renderer.setClearColor(0x000000, 0);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.25;
+  document.body.append(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.01, 1000);
+
+  /**
+   * Het licht van het bord: een warme sleutel van linksboven, een groenige
+   * opvulling uit de schaduw, en een randlicht in de kleur van de partij --
+   * goud voor de Zetel, aantrekkingspaars voor de Nexus.
+   */
+  function licht(rand) {
+    scene.add(new THREE.AmbientLight(0x5b6a72, 0.55));
+    const sleutel = new THREE.DirectionalLight(0xffe6c0, 2.6);
+    sleutel.position.set(-2.2, 3.4, 2.6);
+    scene.add(sleutel);
+    const vul = new THREE.DirectionalLight(0x5b7a78, 1.0);
+    vul.position.set(2.6, -0.6, 1.4);
+    scene.add(vul);
+    const achter = new THREE.DirectionalLight(rand, 2.2);
+    achter.position.set(1.2, 1.6, -3);
+    scene.add(achter);
+    const onder = new THREE.PointLight(rand, 6, 12);
+    onder.position.set(0, -1.4, 1.2);
+    scene.add(onder);
+  }
+
+  window.rendereer = async (url, randkleur, hoogte) =>
+    new Promise((klaar, mis) => {
+      new GLTFLoader().load(
+        url,
+        (gltf) => {
+          try {
+            const model = gltf.scene;
+            // op de oorsprong zetten en op maat brengen
+            const doos = new THREE.Box3().setFromObject(model);
+            const mid = doos.getCenter(new THREE.Vector3());
+            const maat = doos.getSize(new THREE.Vector3());
+            const grootste = Math.max(maat.x, maat.y, maat.z);
+            model.position.sub(mid);
+            model.scale.setScalar(2 / grootste);
+            scene.add(model);
+            licht(randkleur);
+
+            // net iets van boven, zoals je over een bord heen kijkt
+            const d = 7.4;
+            const hoek = (hoogte * Math.PI) / 180;
+            camera.position.set(0, Math.sin(hoek) * d, Math.cos(hoek) * d);
+            camera.lookAt(0, 0, 0);
+            renderer.render(scene, camera);
+            klaar(renderer.domElement.toDataURL('image/png'));
+          } catch (e) {
+            mis(String(e));
+          }
+        },
+        undefined,
+        (e) => mis('laden mislukt: ' + String(e)),
+      );
+    });
+  window.gereed = true;
+</script>

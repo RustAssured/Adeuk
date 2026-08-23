@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "ADEUK — regel-engine (port van v5.py) + visueel simulatielab",
+  "description": "ADEUK \u2014 regel-engine (port van v5.py) + visueel simulatielab",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "art": "node tools/build-art.mjs",
+    "figuren": "node tools/build-figuren.mjs",
     "golden": "python3 tools/gen-golden.py",
     "bench": "vite-node tools/bench.ts",
     "trace": "vite-node tools/trace.ts",
@@ -21,7 +22,9 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "playwright": "^1.62.1",
     "sharp": "^0.35.3",
+    "three": "^0.185.1",
     "typescript": "^5.7.2",
     "vite": "^7.1.14",
     "vite-plugin-singlefile": "^2.3.0",

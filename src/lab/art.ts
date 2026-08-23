@@ -2,7 +2,8 @@
 
 export type ArtSleutel =
   | 'planeet' | 'bewoond' | 'komeet' | 'gat' | 'stil'
-  | 'seat' | 'rug' | 'nexus' | 'supernova' | 'oog' | 'oogtegel';
+  | 'seat' | 'rug' | 'nexus' | 'supernova' | 'oog' | 'oogtegel'
+  | 'figuurZetel' | 'figuurNexus';
 
 const BESTANDEN: Record<ArtSleutel, string> = {
   planeet: 'art/planeet.webp',
@@ -16,6 +17,9 @@ const BESTANDEN: Record<ArtSleutel, string> = {
   supernova: 'art/supernova.webp',
   oog: 'art/oog.webp',
   oogtegel: 'art/oogtegel.webp',
+  // de twee 3D-modellen, één keer uitgerenderd door tools/build-figuren.mjs
+  figuurZetel: 'art/figuur-zetel.webp',
+  figuurNexus: 'art/figuur-nexus.webp',
 };
 
 export type Art = Partial<Record<ArtSleutel, HTMLImageElement>>;
