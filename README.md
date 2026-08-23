@@ -9,25 +9,32 @@ Wat je waarschijnlijk het eerst wilt lezen:
   afsla-opties en de rekensom van de partij.
 - **[docs/BEVINDINGEN2.md](docs/BEVINDINGEN2.md)** — meting 2: de middenlaag —
   verharden, verzilveren en de Oversteek.
+- **[docs/BEVINDINGEN3.md](docs/BEVINDINGEN3.md)** — opdracht 3: het
+  advies-paneel, de speelbare modus en de visuele toestandstaal.
 
 ## Aan de slag
 
 ```bash
 npm install
 npm run art      # eenmalig: maakt public/art/ uit assets/artwork/
+npm run figuren  # eenmalig: rendert de 3D-modellen uit assets/ naar public/art/
 npm run dev      # het lab op http://localhost:5173
 ```
 
 ```bash
-npm test         # 73 tests: pariteit met v5.py, regel-invarianten, botgedrag, middenlaag
+npm test         # 116 tests: pariteit met v5.py, regel-invarianten, botgedrag,
+                 #            middenlaag, de advieslat en de speelbare modus
 npm run build    # productiebundel in dist/
 ```
 
 ## Het lab
 
-- **Bord** met de echte artwork, hex-gemaskeerd. Vat = gouden gloed, rand =
-  zwart gat met paarse contour, spoor = gouden zegel met het oog-motief, de
-  gedekte tegels tonen de kaartrug.
+- **Bord** met de echte artwork, hex-gemaskeerd, en een toestandstaal die je uit
+  een ooghoek kunt lezen: **ijl** is een liggend fiche, **vat** een torentje dat
+  hoger is dan breed, en een **verharde keten** één gegoten bouwwerk op een
+  gedeelde sokkel. De Zetel en de Nexus staan er als hun 3D-model — hij op zijn
+  sokkel, zij zwevend. Verzwelgen brokkelt en trekt de tegel naar hem toe; een
+  verzwolgen spoor blijft nog even staan en dooft dan.
 - **Replay per zet**, niet per beurt. Elke handeling apart, met één regel uitleg.
   Vooruit, terug, springen, tempo-regelaar, seed-invoer. Pijltjestoetsen en
   spatie werken ook.
@@ -35,10 +42,25 @@ npm run build    # productiebundel in dist/
   speelt hetzelfde potje meteen opnieuw. Eén configuratie-object, geen herbouw.
 - **Batch**: n potjes in een aparte draad, met winstverdeling, duurhistogram,
   vastlopers, leiderswissels en comebacks. Klik een potje om het af te spelen.
+  Vink "ook tegen de andere persona's" aan om stelregel 8 te kunnen beoordelen.
+- **Advies**: na elke batch een uitspraak — aanbevolen / aanbevolen met
+  kanttekening / afgeraden — onderbouwd per stelregel, met het getal in de zin.
+  Niet-meetbare stelregels staan er als grijs in en worden nooit groen. Alle
+  grenzen staan in `src/engine/adviesregels.ts`, in één blok. De laatste batch die
+  "aanbevolen" haalde blijft ernaast staan, zodat elke tuning een voor en een na
+  heeft.
+- **Spelen**: zelf een partij spelen, tegen de bot of met z'n tweeën. Wat mag
+  licht op; wat niet mag vertelt bij het aanwijzen waarom niet. Spatie sluit de
+  beurt af, z neemt een handeling terug.
 
 ## Metingen op de opdrachtregel
 
 ```bash
+# opdracht 3 — de advieslat
+npm run meet2 -- advies 200           # de gevalideerde stand langs de negen stelregels
+npm run meet2 -- advies 200 personas  # idem, met stelregel 8 uit het grijs
+npm run meet2 -- adviescheck 120      # bijt de lat? zeven met opzet scheve standen
+
 # meting 2 — de middenlaag
 npm run meet2 -- stand 200         # de meetstand, tegen alle drie de Nexus-persona's
 npm run meet2 -- matrix 150        # K x M x drempel
@@ -73,12 +95,15 @@ src/engine/         de regels — kent geen scherm
   game.ts           de port van v5, plus logboek en de afsla-opties
   config.ts         elke knop uit §5 en de middenlaag, op één plek
   meting2.ts        de metrieken die meetopdracht 2 vraagt
+  adviesregels.ts   de negen stelregels, met alle drempels op één plek
+  zetten.ts         welke zetten er open liggen, en waarom de rest niet mag
+  sessie.ts         een partij die een mens kan spelen, handeling voor handeling
   batch.ts          de metrieken die §5 per optie vraagt
   bots/gretig.ts    de v5-bot, bevroren — het ijkpunt voor de pariteitstest
   bots/persona.ts   dezelfde heuristiek met gewichten: gretig/defensief/gemengd
   bots/beam.ts      de zoekbot uit §4
 src/lab/            het lab — kent de regels alleen via een Snapshot
-tools/              v5_ref.py, golden-generator, meetbank
+tools/              v5_ref.py, golden-generator, meetbank, de figuur-renderer
 tests/              pariteit, regel-invarianten, botgedrag
 assets/artwork/     de originelen, onaangeroerd
 public/art/         wat het lab laadt (29 MB → 1,1 MB)
@@ -109,11 +134,13 @@ npm run golden   # herschrijft tests/golden/v5.json
 
 ## Wat er nog niet is
 
-- Het driedimensionale Nexus-figuur (`Nexus3d.glb`) en de steen-sprites
-  (`steen_1/2/3`) uit §6 zitten niet in de repo. De Nexus staat er nu als
-  sprite; stenen worden getekend.
+- **De klem.** In de gevalideerde stand loopt 11% van de partijen vast. Dat is de
+  enige reden dat het advies-paneel er "met kanttekening" achter zet, en het is
+  het onderwerp van de volgende opdracht.
 - De weergave is 2D-canvas. Dat leest voor een lab beter dan 3D: je wilt de
-  hele draad en alle randen in één oogopslag zien. `src/lab/board.ts` praat
+  hele draad en alle randen in één oogopslag zien. De twee figuren komen wél uit
+  een 3D-model, maar zijn vooraf uitgerenderd naar een plaatje
+  (`npm run figuren`) — er zit geen WebGL in het lab. `src/lab/board.ts` praat
   alleen met een `Snapshot`, dus er kan later een driedimensionale weergave
   naast zonder de engine of het lab te raken.
 - Het definitieve artwork voor de Oog-tegel. Er is een eigen slot
