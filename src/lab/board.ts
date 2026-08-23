@@ -66,6 +66,19 @@ export interface BordStand {
  * Een aanklikbare zet, zoals het bord hem moet laten zien. De kleur volgt de
  * kant: goud is van haar, aantrekkingspaars van hem.
  */
+/** Hoe lang het verzwelgen duurt, en hoe lang het spoor daarna nog nagloeit. */
+const VERZWELG_MS = 420;
+const SPOOR_DOOF_MS = 1500;
+
+interface Verzwolgen {
+  cel: number;
+  start: number;
+  naar: { x: number; y: number };
+  wasSpoor: boolean;
+  tile: TileType | null;
+  open: boolean;
+}
+
 export interface Keuze {
   cel: number;
   soort:
@@ -94,6 +107,12 @@ export class Bord {
   private nexusVan = -1;
   private nexusNaar = -1;
   private nexusT = 1;
+
+  /** tegels die op dit moment verzwolgen worden, met hun eigen klok */
+  private verzwolgen: Verzwolgen[] = [];
+  private vorigAlive: number[] | null = null;
+  private vorigMarks: number[] | null = null;
+  private vorigBeurt = -1;
 
   constructor(private canvas: HTMLCanvasElement, private art: Art) {
     const ctx = canvas.getContext('2d');
@@ -151,6 +170,7 @@ export class Bord {
 
     const { snap, tiles, seat, markeer, wie, hover } = stand;
     const gemarkeerd = new Set(markeer);
+    this.merkVerzwelging(snap, tiles, tijd);
 
     // ---- 0. de tafel waar het bord op ligt
     this.tekenTafel(r.width, r.height, tijd);
@@ -183,6 +203,9 @@ export class Bord {
     // ---- 4b. de oversteek: het pad van de Zetel naar het Oog
     if (stand.route.length > 1) this.tekenRoute(stand.route, snap, tijd);
     if (snap.oog >= 0 && snap.alive[snap.oog]) this.tekenOog(this.plek(snap.oog), tijd);
+
+    // ---- 4c. het verzwelgen zelf: de tegel wordt naar hem toe getrokken
+    this.tekenVerzwelgingen(tijd);
 
     // ---- 5. de Nexus
     this.tekenNexus(snap.npos, tijd);
@@ -457,6 +480,132 @@ export class Bord {
   }
 
   /** Substantie op de tegel: één steen is ijl, twee is vat. */
+  // ------------------------------------------------------------ verzwelgen
+  //
+  // Een tegel die verdwijnt hoort niet uit te gaan als een lampje. Hij wordt
+  // naar de Nexus toe getrokken: het brokkelt, het versnelt, en het is weg.
+  // Ruim vier tienden van een seconde, kort genoeg om niet te vervelen en lang
+  // genoeg om te zien wat er gebeurde — ook in de replay, want die tekent
+  // dezelfde momentopnames.
+  //
+  // Lag er een spoor op, dan blijft het merkteken achter en dooft daarna pas.
+  // De tegel gaat, het punt blijft.
+
+  private merkVerzwelging(
+    snap: Snapshot,
+    tiles: Array<TileType | null>,
+    tijd: number,
+  ): void {
+    const vorig = this.vorigAlive;
+    const vorigM = this.vorigMarks;
+    // terugspoelen of een ander potje: geen animaties uit het niets
+    const sprong = this.vorigBeurt >= 0 && snap.turn < this.vorigBeurt;
+    if (vorig && vorig.length === snap.alive.length && !sprong) {
+      for (let i = 0; i < snap.alive.length; i++) {
+        if (vorig[i] === 1 && snap.alive[i] === 0) {
+          this.verzwolgen.push({
+            cel: i,
+            start: tijd,
+            naar: this.plek(snap.npos),
+            wasSpoor: (vorigM?.[i] ?? 0) === 1,
+            tile: tiles[i] ?? null,
+            open: true,
+          });
+        }
+      }
+      if (this.verzwolgen.length > 14) this.verzwolgen.splice(0, this.verzwolgen.length - 14);
+    } else if (sprong) {
+      this.verzwolgen = [];
+    }
+    this.vorigAlive = snap.alive.slice();
+    this.vorigMarks = snap.marks.slice();
+    this.vorigBeurt = snap.turn;
+  }
+
+  private tekenVerzwelgingen(tijd: number): void {
+    if (!this.verzwolgen.length) return;
+    const { ctx } = this;
+    const s = this.size;
+
+    for (const v of this.verzwolgen) {
+      const p = this.plek(v.cel);
+      const vlucht = Math.min(1, (tijd - v.start) / VERZWELG_MS);
+
+      if (vlucht < 1) {
+        // hij trekt: het gaat steeds harder, zoals iets dat valt
+        const e = vlucht * vlucht;
+        const x = p.x + (v.naar.x - p.x) * e * 0.88;
+        const y = p.y + (v.naar.y - p.y) * e * 0.88;
+
+        // de streep waarlangs hij verdwijnt
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = `rgba(155,127,212,${0.5 * (1 - vlucht)})`;
+        ctx.lineWidth = s * 0.1 * (1 - vlucht) + 1;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(v.naar.x, v.naar.y);
+        ctx.stroke();
+        ctx.restore();
+
+        // de tegel zelf, krimpend en tollend
+        const img = v.tile ? this.art[ART_VAN_TEGEL[v.tile]] : undefined;
+        ctx.save();
+        ctx.globalAlpha = 1 - e * 0.85;
+        ctx.translate(x, y);
+        ctx.rotate(e * 0.9);
+        ctx.scale(1 - e * 0.72, 1 - e * 0.72);
+        this.pad({ x: 0, y: 0 }, s * 0.93);
+        ctx.clip();
+        if (img) ctx.drawImage(img, -s * 0.93, -s * 0.93, s * 1.86, s * 1.86);
+        else {
+          ctx.fillStyle = '#1a1526';
+          ctx.fill();
+        }
+        ctx.restore();
+
+        // brokken: ze breken eruit en worden dan meegezogen
+        ctx.save();
+        for (let k = 0; k < 7; k++) {
+          const hoek = (k / 7) * Math.PI * 2 + v.cel * 0.7;
+          const spreid = Math.sin(Math.min(1, vlucht * 1.6) * Math.PI) * s * 0.42;
+          const bx = p.x + Math.cos(hoek) * (s * 0.3 + spreid);
+          const by = p.y + Math.sin(hoek) * (s * 0.26 + spreid * 0.8);
+          const fx = bx + (v.naar.x - bx) * e;
+          const fy = by + (v.naar.y - by) * e;
+          const r = s * 0.075 * (1 - vlucht);
+          ctx.globalAlpha = 0.85 * (1 - vlucht);
+          ctx.fillStyle = k % 3 === 0 ? '#b4757a' : k % 3 === 1 ? '#dda876' : '#455a5c';
+          ctx.beginPath();
+          ctx.moveTo(fx, fy - r);
+          ctx.lineTo(fx + r * 0.9, fy + r * 0.6);
+          ctx.lineTo(fx - r * 0.8, fy + r * 0.7);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // het spoor blijft nog even staan en dooft dan
+      if (v.wasSpoor) {
+        const u = (tijd - v.start) / SPOOR_DOOF_MS;
+        if (u < 1) {
+          const alfa = u < 0.35 ? 1 : 1 - (u - 0.35) / 0.65;
+          ctx.save();
+          ctx.globalAlpha = alfa;
+          this.tekenSpoor(p, tijd, v.cel);
+          ctx.restore();
+        }
+      }
+    }
+
+    const maxMs = Math.max(VERZWELG_MS, SPOOR_DOOF_MS);
+    this.verzwolgen = this.verzwolgen.filter(
+      (v) => tijd - v.start < (v.wasSpoor ? maxMs : VERZWELG_MS),
+    );
+  }
+
   private tekenZetel(p: { x: number; y: number }, tijd: number): void {
     const { ctx } = this;
     const s = this.size;
