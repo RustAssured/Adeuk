@@ -365,23 +365,29 @@ Langs de toetslijst uit §5, alleen wat ik kán meten:
   zij houdt genoeg ketens hard om hem onder zijn 28 te drukken.
 
 **Wat ik hierna zou meten — en wat het níet is.** De voor de hand liggende
-gedachte is: zijn drempel omlaag, dan heeft hij speling. Dat is gemeten en het
-werkt niet. Elke stap omlaag verschuift de partij naar hem zonder het plafond
-echt op te lossen:
+gedachte is: zijn drempel omlaag, dan heeft hij speling. Dat is gemeten over vijf
+waarden en het werkt niet. Elke stap omlaag verschuift de partij naar hem, en het
+beurtenplafond gaat er maar half van omlaag:
 
 ```
-zijn drempel  gretig   gemengd  defensief  plafond
-────────────  ───────  ───────  ─────────  ───────
-28            40 / 41  41 / 44  42 / 42    15-20%
-27            40 / 43  40 / 53             7-17%
-25            39 / 54  39 / 53  39 / 48     8-14%
-24            38 / 56                          7%
+zijn drempel  gretig   gemengd  defensief  plafond  spreiding van zijn winst
+────────────  ───────  ───────  ─────────  ───────  ────────────────────────
+28            40 / 41  41 / 44  42 / 42    15-20%   41-44%   (3 punten)
+27            40 / 43  40 / 53  40 / 45     7-17%   43-53%  (10 punten)
+26            40 / 51  40 / 49              10-12%  49-51%
+25            39 / 54  39 / 53  39 / 48     8-14%   48-54%
+24            38 / 56  38 / 56  39 / 49     6-13%   49-56%
 ```
 
-De uithongering zit niet in zijn drempel maar in het mechanisme: **een verharde
-keten is permanent van zijn menu af, en zij heeft er alle belang bij om de keten
-die haar route draagt níet te verzilveren.** Dat is precies de afweging die de
-regel zo aardig maakt, en tegelijk de bron van de patstelling.
+Let op de laatste kolom. Bij 28 ligt zijn winstkans binnen drie procentpunt over
+alle drie de persona's; bij 27 al binnen tien. **De stand op 28 is niet alleen
+het meest in balans, hij is ook het minst gevoelig voor hoe goed er gespeeld
+wordt** — en dat was in meting 1 juist de zwakke plek van het voorstel.
+
+De uithongering zit dus niet in zijn drempel maar in het mechanisme: **een
+verharde keten is permanent van zijn menu af, en zij heeft er alle belang bij om
+de keten die haar route draagt níet te verzilveren.** Dat is precies de afweging
+die de regel zo aardig maakt, en tegelijk de bron van de patstelling.
 
 De richting die ik zou onderzoeken is dus niet zijn teller maar het vasthouden
 zelf: laat het iets kosten om een keten hard te houden. Bijvoorbeeld — en dit is
@@ -389,6 +395,10 @@ een voorstel om te méten, niet om aan te nemen — dat een verharde keten die n
 beurten nog niet verzilverd is de draad niet langer draagt, of dat de omsingeling
 er alsnog vat op krijgt zodra hij hem volledig heeft ingesloten. Dan blijft het
 haar keuze, maar is "eeuwig verschansen" geen gratis optie meer.
+
+Terzijde, ook gemeten: haar drempel omhoog helpt evenmin. Op 14 sporen met zijn
+27 wordt het 34/48, 36/58 en 35/49 — dat duwt de partij alleen maar verder naar
+hem toe.
 
 ---
 
