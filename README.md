@@ -19,7 +19,7 @@ npm run dev      # het lab op http://localhost:5173
 ```
 
 ```bash
-npm test         # 47 tests: pariteit met v5.py, regel-invarianten, botgedrag
+npm test         # 69 tests: pariteit met v5.py, regel-invarianten, botgedrag, middenlaag
 npm run build    # productiebundel in dist/
 ```
 

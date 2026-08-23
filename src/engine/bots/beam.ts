@@ -278,8 +278,13 @@ function waarde(g: Game, ctx = context(g)): number {
       // kan deze groep de K überhaupt nog halen?
       const ruimte = groeiruimte(g, groep);
       if (groep.size + ruimte < K) {
-        // nooit meer een keten: alleen nog los doorgeven waard
-        losseVat += groep.size;
+        // Nooit meer een keten. Wat overblijft is los doorgeven — en dat kan
+        // alleen op tegels die iets opleveren. Een groep stille velden is dan
+        // gewoon gestrande substantie, geen halve keten.
+        for (const x of groep) {
+          if (g.yieldOf(x) > 0) losseVat += 1;
+          else lek += g.wOf(x);
+        }
         continue;
       }
       const vol = Math.min(Math.floor(K * cfg.verzilveren.M), Math.max(1, nodig()));
