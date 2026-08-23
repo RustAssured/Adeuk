@@ -80,6 +80,15 @@ export interface OversteekConfig {
    */
   hof: boolean;
   onbereikbaarEindigt: boolean;
+  /**
+   * Derde kandidaat: het pad mag over de rand heen, net zoals reiken dat al mag
+   * (§2, "Reiken door de rand"). Over n aaneengesloten verdwenen tegels blijft
+   * de route dus doorlopen. Hij houdt zijn tegenspel — hij moet nu bréde gaten
+   * eten in plaats van één tegel — zonder dat één hap de partij voorgoed
+   * onbeslisbaar maakt. `maxSprong` is het aantal verdwenen tegels dat een
+   * sprong mag overbruggen; 0 zet de regel uit.
+   */
+  maxSprong: number;
 }
 
 export interface GameConfig {
@@ -151,7 +160,7 @@ export const V5_CONFIG: GameConfig = {
   spoorVreten: 'alles',
   verharden: { on: false, K: 4 },
   verzilveren: { on: false, M: 2 },
-  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false },
+  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false, maxSprong: 0 },
   afslag: {
     omsingeling: { on: false, minRandZijden: 3, bordrandTelt: false },
     stilstand: { on: false },
@@ -234,7 +243,7 @@ export function meeting2(patch: DeepPartial<GameConfig> = {}): GameConfig {
     afslag: { omsingeling: { on: true, minRandZijden: 3, bordrandTelt: false } },
     verharden: { on: true, K: 4 },
     verzilveren: { on: true, M: 2 },
-    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false },
+    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false, maxSprong: 0 },
     laatsteBot: 'beam',
     nexusBot: 'gretig',
   });

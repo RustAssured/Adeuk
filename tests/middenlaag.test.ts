@@ -348,3 +348,38 @@ describe('pariteit blijft', () => {
     expect(g.winstLaatste()).toBe(false);
   });
 });
+
+describe('het pad mag over de rand springen', () => {
+  it('houdt de route heel over een gat van één tegel', () => {
+    const g = opzet(30, { needL: 1, oversteek: { maxSprong: 1 } });
+    const pad = padNaarOog(g);
+    for (const c of pad) if (c !== g.seat) g.marks.add(c);
+    g.pileL = 5;
+    expect(g.winstLaatste()).toBe(true);
+
+    const midden = pad[Math.floor(pad.length / 2)];
+    g.consume(midden);
+    expect(g.routeNaarOog(), 'één gat is te overbruggen').not.toBeNull();
+    expect(g.winstLaatste()).toBe(true);
+  });
+
+  it('breekt alsnog op een gat dat te breed is', () => {
+    const g = opzet(30, { needL: 1, oversteek: { maxSprong: 1 } });
+    const pad = padNaarOog(g);
+    for (const c of pad) if (c !== g.seat) g.marks.add(c);
+    g.pileL = 5;
+    const i = Math.max(1, Math.floor(pad.length / 2) - 1);
+    g.consume(pad[i]);
+    g.consume(pad[i + 1]);
+    expect(g.routeNaarOog(), 'twee tegels weg is te ver').toBeNull();
+  });
+
+  it('laat de route zonder de knop op één gat stuklopen', () => {
+    const g = opzet(30, { needL: 1 });
+    const pad = padNaarOog(g);
+    for (const c of pad) if (c !== g.seat) g.marks.add(c);
+    g.pileL = 5;
+    g.consume(pad[Math.floor(pad.length / 2)]);
+    expect(g.routeNaarOog()).toBeNull();
+  });
+});

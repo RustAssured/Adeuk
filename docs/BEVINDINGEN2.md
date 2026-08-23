@@ -61,6 +61,38 @@ nieuws vertellen. Opgesplitst in drie sneden:
 - **de beste stand uit de matrix** nog eens tegen alle drie de persona's, want in
   meting 1 bleek het evenwichtspunt daarmee mee te schuiven.
 
+### De matrix
+
+150 partijen per stand, tegen de gemengde Nexus, met de zoekbot voor de Laatste.
+*blokkade* = hij wint doordat de weg naar het Oog weg is terwijl haar teller vol
+staat; *dood* = dezelfde stand maar niemand wint; *sprints* = partijen korter
+dan acht beurten.
+
+```
+stand                  zij   hij   onbeslist  mediaan  verhard  los   blokkade  dood  sprints 
+────────────────────── ───── ───── ────────── ──────── ──────── ───── ───────── ───── ────────
+K3 · M1,5 · drempel 9  57%   22%   21%        14 b     77%      32%   11%       13%   6%      
+K3 · M1,5 · drempel 11 47%   31%   22%        16 b     78%      33%   13%       8%    1%      
+K3 · M1,5 · drempel 13 41%   31%   28%        17,5 b   75%      35%   9%        7%    0%      
+K3 · M2 · drempel 9    63%   15%   22%        12 b     78%      24%   7%        16%   17%     
+K3 · M2 · drempel 11   62%   17%   21%        13 b     77%      13%   11%       14%   13%     
+K3 · M2 · drempel 13   59%   18%   23%        14 b     74%      14%   9%        15%   10%     
+
+K4 · M1,5 · drempel 9  29%   44%   27%        19,5 b   61%      74%   22%       11%   9%      
+K4 · M1,5 · drempel 11 23%   48%   29%        20,5 b   58%      68%   22%       7%    1%      
+K4 · M1,5 · drempel 13 19%   57%   24%        20 b     57%      67%   21%       4%    1%      
+K4 · M2 · drempel 9    67%   18%   15%        7 b      79%      15%   15%       14%   55%     
+K4 · M2 · drempel 11   59%   21%   20%        9 b      82%      26%   14%       15%   32%     
+K4 · M2 · drempel 13   55%   29%   16%        11 b     80%      32%   15%       7%    5%      
+
+K5 · M1,5 · drempel 9  22%   48%   30%        21 b     65%      86%   21%       9%    3%      
+K5 · M1,5 · drempel 11 19%   50%   31%        20 b     57%      83%   17%       7%    1%      
+K5 · M1,5 · drempel 13 16%   50%   34%        21 b     55%      81%   14%       5%    0%      
+K5 · M2 · drempel 9    23%   47%   30%        21 b     66%      79%   20%       10%   6%      
+K5 · M2 · drempel 11   29%   41%   30%        20 b     47%      61%   13%       10%   15%     
+K5 · M2 · drempel 13   25%   45%   30%        20 b     49%      53%   18%       7%    5%      
+```
+
 ## Beleefbaarheid — de drie momenten in het lab
 
 Punt 4 van de opdracht: de drie nieuwe momenten moeten zichtbaar en voelbaar
@@ -190,39 +222,85 @@ wint. De eerste groep is tegenspel; de tweede is dode tijd.
 
 ---
 
+## Twee kandidaat-reparaties, en waarom ze allebei te ver gaan
+
+Geen van beide staat in de opdracht; ze staan als knop in het lab en standaard
+uit, want de meting gaat eerst over de regel zoals hij is opgeschreven. Beide
+zijn gemeten in de basisstand (K 4, M 2, drempel 11) tegen de gemengde Nexus.
+
+```
+variant                zij  hij  niemand  plafond  blokkade  dood  sprints  comeback
+────────────────────── ──── ──── ──────── ──────── ───────── ───── ──────── ────────
+zoals opgeschreven     59%  21%  0%       20%      14%       15%   32%      76%
++ hof rond het Oog     76%   0%  0%       24%       0%       11%   32%      51%
++ onbereikbaar eindigt 59%   0%  41%       0%       0%        0%   57%      73%
++ allebei              76%   0%  22%       2%       0%        1%   45%      51%
+```
+
+**De hof maakt zijn winst rekenkundig onhaalbaar.** Beschermde buren van het Oog
+(zes), plus het Oog zelf, plus de Zetel: dat zijn acht tegels die hij nooit mag
+verzwelgen. 36 − 8 = 28 — precies zijn drempel. Hij zou dus letterlijk elke
+overgebleven tegel moeten opeten om te winnen, en dat lukt in nul van de 150
+partijen. Een hof is alleen bruikbaar als `needN` mee omlaag gaat.
+
+**"Onbereikbaar eindigt" haalt de dode tijd eruit, maar neemt hem zijn winst
+af.** Het plafond gaat naar nul, maar 41% van de partijen eindigt nu in "niemand
+wint" en hij wint er geen enkele meer. Dat is logisch: insluiten wás zijn winst,
+en nu is het een gelijkspel. Een kanttekening hierbij is eerlijk: de Nexus-bot
+mikt nog steeds op de route alsof hij er iets mee wint. Onder deze regel speelt
+hij dus aantoonbaar verkeerd, en het echte effect van de regel ligt vermoedelijk
+gunstiger dan deze rij laat zien.
+
+**De derde weg, die wél bij het spel past.** §2 kent al *"Reiken door de rand:
+over n aaneengesloten verdwenen tegels heen"*. Als reiken over een gat mag, kan
+de route dat ook. Dan houdt hij zijn tegenspel — hij moet bréde gaten eten in
+plaats van één tegel — zonder dat één hap de partij voorgoed onbeslisbaar maakt.
+Dat staat nu als `oversteek.maxSprong` in de engine, met een test die vastlegt
+dat één gat overbrugd wordt en twee niet.
+
+---
+
 ## Ablatie — welke van de drie draagt het meest?
 
 Elk van de drie regels apart uit, in de basisstand (K 4, M 2, drempel 11) tegen
-de gemengde Nexus. Let op: "alleen de Oversteek" is dezelfde configuratie als
-"zonder verharden", en "alleen verharden en verzilveren" dezelfde als "zonder
-Oversteek — vandaar vijf onderscheiden rijen, geen zeven.
+de gemengde Nexus, 150 partijen. Let op: "alleen de Oversteek" is dezelfde
+configuratie als "zonder verharden", en "alleen verharden + verzilveren"
+dezelfde als "zonder Oversteek" — vandaar vijf onderscheiden rijen, geen zeven.
 
-__ABLATIETABEL__
+```
+variant                                       zij hij klem mediaan verhard los  blokkade dood comeback sprints
+───────────────────────────────────────────── ─── ─── ──── ─────── ─────── ──── ──────── ──── ──────── ───────
+alle drie aan                                 59% 21% 20%  9 b     82%     26%  14%      15%  76%      32%    
+zonder verharden — dus ook zonder verzilveren 2%  65% 33%  21 b    —       100% 17%      10%  60%      0%     
+zonder verzilveren                            29% 48% 23%  22 b    69%     100% 2%       1%   41%      0%     
+zonder Oversteek                              59% 41% 0%   11 b    69%     55%  —        —    26%      29%    
+geen van drieën — de stand van meting 1       31% 69% 0%   15 b    —       100% —        —    29%      0%     
+```
 
-Drie dingen springen eruit.
+Dit is scherper dan verwacht, en het antwoord op "welke regel draagt het meest"
+is niet wat de opzet suggereert.
 
-**Verzilveren is de motor.** Verharden zónder verzilveren tilt haar van 2% naar
-ongeveer een kwart; verzilveren erbij brengt haar naar zestig procent. Een
-verharde keten die je niet kunt innen is een muur, geen munt — hij houdt haar in
-leven maar wint niets. Dit is meteen het antwoord op "welke regel draagt het
-meest": **B, en A is er de opstap naar.**
+**Alleen verzilveren verzet de balans.** Zonder verzilveren staat zij op 29% —
+praktisch gelijk aan de 31% van de meting 1-stand zonder alle drie de regels.
+Mét verzilveren springt ze naar 59%. Dat is de hele beweging. **Verharden op
+zichzelf doet niets voor de uitslag**: een keten die je niet kunt innen houdt
+haar in leven maar wint geen enkele partij. A is de opstap, B is de motor.
 
-**De Oversteek levert de spanning.** Zet hem uit en de comebacks zakken van bijna
-vier op de vijf partijen naar één op de vijf. Dát is wat hij toevoegt: haar
-teller vol zien lopen terwijl de weg dichtgroeit is de spanningsboog die er in
-meting 1 niet was. Hij is ook de enige van de drie die de Nexus iets eigens
-geeft.
+**De Oversteek verzet de balans ook níet** — 59% met, 59% zonder. Wat hij wél
+doet is de *textuur*: de comebacks gaan van 26% naar 76%, en de vastlopers van
+0% naar 20%. Hij verandert geen enkele uitslag maar wel elke partij. Haar teller
+vol zien lopen terwijl de weg dichtgroeit is de spanningsboog die er in meting 1
+niet was; dat is precies wat de speeltest miste.
 
-**En de Oversteek levert álle dode tijd.** Zonder hem: nul procent vastlopers.
-Met hem: bijna een op de vijf. Die twee zitten aan hetzelfde mechanisme vast —
-een winstvoorwaarde die hij kan wégeten is spannend zolang zij hem kan herstellen,
-en dood zodra dat niet meer kan.
+**En die twee zitten aan hetzelfde mechanisme vast.** Zonder Oversteek: nul
+procent vastlopers. Met: een op de vijf. Een winstvoorwaarde die hij kan
+wégeten is spannend zolang zij hem kan herstellen, en dood zodra dat niet meer
+kan. Daarom is reparatie B hierboven geen luxe maar een voorwaarde.
 
-**Verharden alleen doet weinig.** Zonder verharden (en dus zonder verzilveren)
-wint zij 2%; dat is slechter dan de stand van meting 1 zonder alle drie de
-regels. De Oversteek in zijn eentje is dus een netto verslechtering voor haar:
-hij legt er een tweede voorwaarde bovenop zonder haar iets te geven om die mee te
-halen.
+**De Oversteek in zijn eentje is een verslechtering.** Zonder verharden en
+verzilveren wint zij 2% — slechter dan de 31% van meting 1. Hij legt er dan een
+tweede voorwaarde bovenop zonder haar iets te geven om die mee te halen. De
+drie regels horen bij elkaar; los ingevoerd doen ze schade.
 
 ---
 

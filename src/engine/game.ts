@@ -301,6 +301,33 @@ export class Game {
   }
 
   /**
+   * De levende tegels die vanaf `c` bereikbaar zijn voor de route: de gewone
+   * buren, plus — als `maxSprong` het toelaat — de eerste levende tegel achter
+   * een gat, net zoals reiken over de rand mag.
+   */
+  private buitenkant(c: CellKey): CellKey[] {
+    const uit: CellKey[] = [];
+    const sprong = this.cfg.oversteek.maxSprong;
+    const ax = unkey(c);
+    for (const d of DIRS) {
+      let y: Axial = [ax[0] + d[0], ax[1] + d[1]];
+      if (this.alive.has(ckey(y))) {
+        uit.push(ckey(y));
+        continue;
+      }
+      if (sprong <= 0) continue;
+      let gaten = 0;
+      while (!this.alive.has(ckey(y)) && gaten < sprong) {
+        y = [y[0] + d[0], y[1] + d[1]];
+        gaten++;
+        if (Math.abs(y[0]) > 4 || Math.abs(y[1]) > 4) break;
+      }
+      if (this.alive.has(ckey(y))) uit.push(ckey(y));
+    }
+    return uit;
+  }
+
+  /**
    * Het pad van de Zetel naar het Oog over tegels die van haar zijn, of null.
    * Verzwolgen spoortegels tellen niet mee: het punt bleef, de tegel is weg.
    */
@@ -321,8 +348,8 @@ export class Game {
         }
         return pad.reverse();
       }
-      for (const x of this.nbKeys(c)) {
-        if (vorige.has(x) || !this.alive.has(x)) continue;
+      for (const x of this.buitenkant(c)) {
+        if (vorige.has(x)) continue;
         if (x === this.oog) {
           if (this.cfg.oversteek.oogMoetVanHaarZijn && !this.haarTegel(x)) continue;
         } else if (!this.haarTegel(x)) continue;
@@ -348,11 +375,7 @@ export class Game {
       const c = rij[kop++];
       const k = kosten.get(c)!;
       if (c === this.oog) return k;
-      for (const x of this.nbKeys(c)) {
-        if (!this.alive.has(x)) continue;
-        if (x === this.oog && this.cfg.oversteek.oogMoetVanHaarZijn && !this.haarTegel(x)) {
-          // het Oog moet zelf ook van haar worden
-        }
+      for (const x of this.buitenkant(c)) {
         const nieuw = k + (this.haarTegel(x) ? 0 : 1);
         if (nieuw < (kosten.get(x) ?? Infinity)) {
           kosten.set(x, nieuw);

@@ -103,8 +103,10 @@ if (cmd === 'stand') {
   const drempel = Number(process.argv[6] ?? 11);
   const hof = process.argv[7] === 'hof';
   const einde = process.argv[8] === 'einde';
+  const sprong = Number(process.argv[9] ?? 0);
   kop(
     `K${K} M${M} drempel ${drempel}${hof ? ' + hof' : ''}${einde ? ' + onbereikbaar eindigt' : ''}` +
+      `${sprong ? ` + pad springt ${sprong}` : ''}` +
       ` — ${N} seeds, tegen alle drie de persona's`,
   );
   for (const nx of ['gretig', 'gemengd', 'defensief'] as const) {
@@ -113,7 +115,7 @@ if (cmd === 'stand') {
         verharden: { K },
         verzilveren: { M },
         needL: drempel,
-        oversteek: { hof, onbereikbaarEindigt: einde },
+        oversteek: { hof, onbereikbaarEindigt: einde, maxSprong: sprong },
         nexusBot: nx,
       }),
       N,
@@ -135,6 +137,8 @@ if (cmd === 'stand') {
     ['+ hof rond het Oog', { oversteek: { hof: true } }],
     ['+ onbereikbaar eindigt', { oversteek: { onbereikbaarEindigt: true } }],
     ['+ allebei', { oversteek: { hof: true, onbereikbaarEindigt: true } }],
+    ['+ pad mag 1 gat over', { oversteek: { maxSprong: 1 } }],
+    ['+ pad mag 2 gaten over', { oversteek: { maxSprong: 2 } }],
     ['pad tot náást het Oog', { oversteek: { oogMoetVanHaarZijn: false } }],
     ['Oog op afstand 3', { oversteek: { afstand: 3 } }],
   ];
