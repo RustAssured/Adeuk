@@ -117,7 +117,7 @@ export class Game {
   // --- logboek ---
   trace: boolean;
   events: GameEvent[] = [];
-  private evI = 0;
+  evI = 0;
   laatsteVerandering = 0;
   private vorigeSignatuur = '';
 
@@ -886,21 +886,36 @@ export class Game {
 
   nexusTurn(): void {
     if (this.cfg.solo) return;
-    this.spoorAfDezeBeurt = 0;
+    this.beginNexusBeurt();
     nexusBots[this.cfg.nexusBot](this);
     this.omsingelingAfslag();
   }
 
-  playTurn(): void {
-    if (this.done) return;
+  // De beurt is opgeknipt in stukken zodat een gespeelde partij (src/engine/
+  // sessie.ts) er precies dezelfde stappen doorheen loopt als `playTurn`. Er is
+  // maar één lezing van het verloop, en de pariteitstest bewaakt hem.
+
+  /** De teller ophogen en het logboek openen. */
+  beginBeurt(): void {
     this.turn += 1;
     if (this.trace) {
       this.emit('beurt', 'systeem', [], `Beurt ${this.turn}.`);
     }
-    this.laatsteTurn();
+  }
+
+  /** Na haar beurt. Geeft terug of de partij doorgaat. */
+  naHaarBeurt(): boolean {
     this.noteerRoute();
-    if (this.done) return;
-    this.nexusTurn();
+    return !this.done;
+  }
+
+  /** Aan het begin van zijn beurt: de sporenteller van deze beurt op nul. */
+  beginNexusBeurt(): void {
+    this.spoorAfDezeBeurt = 0;
+  }
+
+  /** Na zijn beurt: de route noteren en kijken of het universum nog verder kan. */
+  eindeBeurt(): void {
     this.noteerRoute();
     if (this.done) return;
     this.hist.push([this.pileL, this.pileN]);
@@ -929,6 +944,15 @@ export class Game {
     this.noteerVerandering();
   }
 
+  playTurn(): void {
+    if (this.done) return;
+    this.beginBeurt();
+    this.laatsteTurn();
+    if (!this.naHaarBeurt()) return;
+    this.nexusTurn();
+    this.eindeBeurt();
+  }
+
   play(maxTurns = this.cfg.maxTurns): Uitslag {
     if (this.trace && this.events.length === 0) this.emitOpzet();
     while (this.turn < maxTurns && !this.done) this.playTurn();
@@ -949,7 +973,9 @@ export class Game {
 
   // -------------------------------------------------------------- logboek
 
-  private emitOpzet(): void {
+  /** De openingsregel van het logboek. `play()` doet dit zelf; een gespeelde
+   *  partij (sessie.ts) moet hem apart openen. */
+  emitOpzet(): void {
     const cellen = [IDX.get(this.seat)!, IDX.get(this.npos)!];
     if (this.oog) cellen.push(IDX.get(this.oog)!);
     const oogTekst = this.oog
@@ -1062,6 +1088,24 @@ export class Game {
     return c;
   }
 
+  /**
+   * Een kopie inclusief logboek en geschiedenis, om een halve beurt terug te
+   * draaien. `clone()` laat die twee juist weg omdat de zoekbot er duizenden
+   * per partij maakt; hier zijn ze nodig.
+   *
+   * De toevalsgenerator wordt gedeeld, niet gekopieerd. Dat kan omdat geen
+   * enkele handeling van een speler eraan komt — alleen de bots gebruiken hem —
+   * en `sessie.ts` alleen binnen de eigen beurt terugdraait.
+   */
+  volledigeKopie(): Game {
+    const c = this.clone();
+    c.trace = this.trace;
+    c.events = this.events.slice();
+    c.evI = this.evI;
+    c.hist = this.hist.map((h) => [h[0], h[1]] as [number, number]);
+    return c;
+  }
+
   /** Controle op de gesloten kringloop: voorraad + bord + doos = total. */
   substantieTotaal(): number {
     let opBord = 0;
@@ -1117,7 +1161,7 @@ export class Game {
   }
 }
 
-function eindTekst(uit: Uitslag, g: Game): string {
+export function eindTekst(uit: Uitslag, g: Game): string {
   switch (uit) {
     case 'laatste':
       return g.cfg.oversteek.on
