@@ -11,6 +11,26 @@ beurt gelijk).
 
 ---
 
+## Kort
+
+1. **De drie regels werken, maar alleen samen.** De Oversteek in zijn eentje
+   maakt haar kansen slechter dan vóór meting 2; verharden zonder verzilveren
+   verzet niets. Los ingevoerd doen ze schade.
+2. **Verzilveren is de enige regel die de balans verzet** — van 29% naar 59%.
+   Verharden is de opstap ernaartoe.
+3. **De Oversteek verzet de balans niet, maar wel de partij.** Comebacks van 26%
+   naar 76%, leiderswissels van 0,2 naar bijna 2. Dat is precies wat de speeltest
+   miste.
+4. **De sprint-check faalt.** In de basisstand is een derde van de partijen
+   binnen acht beurten voorbij, bij drempel 9 meer dan de helft. Eén keten van
+   vier is bij M 2 al acht punten.
+5. **Het Oog kan worden ingesloten, en dan gebeurt er niets meer.** Ruim een
+   kwart van de partijen loopt tot het beurtenplafond. Dit is de vervelendste
+   vondst en hij stond niet in de opdracht.
+6. **Er is één stand die het wél doet:** K 3, M 1,5, drempel 13 — en het mooiste
+   eraan is dat de balans nauwelijks meebeweegt met hoe goed de Nexus gespeeld
+   wordt. Alleen die dode tijd moet er nog uit.
+
 ## Wat de opdracht openliet, en wat ik ervan gemaakt heb
 
 De drie regels zijn scherp opgeschreven, maar op zes punten moest ik kiezen.
@@ -92,37 +112,6 @@ K5 · M2 · drempel 9    23%   47%   30%        21 b     66%      79%   20%     
 K5 · M2 · drempel 11   29%   41%   30%        20 b     47%      61%   13%       10%   15%     
 K5 · M2 · drempel 13   25%   45%   30%        20 b     49%      53%   18%       7%    5%      
 ```
-
-## Beleefbaarheid — de drie momenten in het lab
-
-Punt 4 van de opdracht: de drie nieuwe momenten moeten zichtbaar en voelbaar
-zijn in de replay. Wat er nu staat:
-
-- **Verharden.** Tegels van dezelfde keten worden aan elkaar gelast getekend:
-  dikke gouden verbindingen tussen de hexen, een dichte rand eromheen, en de
-  gloed staat stil in plaats van te ademen. Een verharde keten leest daardoor
-  als één gelast bouwwerk en niet als vier losse tegels — precies het verschil
-  dat aan tafel telt. In het logboek: *"Keten van 4 verhardt — onaantastbaar, en
-  af: hier kan niets meer bij."*
-- **Verzilveren.** *"De Laatste verzilvert een keten van 4 in één handeling —
-  +8 op haar teller (11 van 11), 8 substantie keert terug. De sporen zijn nu
-  gewoon spoor."* De lassen verdwijnen op datzelfde moment van het bord; je ziet
-  het bouwwerk uit elkaar vallen tot losse merktekens.
-- **De route.** Het pad van de Zetel naar het Oog loopt als een bewegende
-  stippellijn over het bord, met een brede zachte gloed eronder. Breekt hij, dan
-  staat er *"De weg naar het Oog is verbroken"* in het paars van de Nexus, en de
-  teller bovenin slaat om naar het aantal tegels dat ze nog moet innemen — of
-  naar *"het Oog is ingesloten"* als er helemaal geen weg meer is.
-
-Het Oog heeft een eigen artwork-slot (`public/art/oogtegel.webp`). Zolang het
-definitieve artwork er niet is wordt `Oog.png` gebruikt, met het oog-motief van
-de kaartrug er in goud overheen getekend, zodat de tegel onmiskenbaar is.
-
-De drie momenten zijn in het zettenlogboek uitgelicht — goud voor haar
-mijlpalen, paars voor de zijne — zodat je ze in een lange partij niet
-overslaat. Alle knoppen (K, M, drempel, afstand van het Oog, en de twee
-kandidaat-reparaties hieronder) staan live in het paneel, en de batch-modus
-toont dezelfde cijfers als de meetbank.
 
 ---
 
@@ -301,6 +290,76 @@ kan. Daarom is reparatie B hierboven geen luxe maar een voorwaarde.
 verzilveren wint zij 2% — slechter dan de 31% van meting 1. Hij legt er dan een
 tweede voorwaarde bovenop zonder haar iets te geven om die mee te halen. De
 drie regels horen bij elkaar; los ingevoerd doen ze schade.
+
+---
+
+## Voorstel om te toetsen
+
+**K 3 · M 1,5 · drempel 13**, bovenop de aanbevolen stand van meting 1
+(3 handelingen, 2 stappen, `spoorVreten = alleenTegel`, omsingeling aan). 200
+partijen per persona:
+
+```
+tegen wie   zij  hij  plafond  mediaan      verhard  los  blokkade  dood  wissels  comeback  sprints
+─────────── ──── ──── ──────── ──────────── ──────── ──── ───────── ───── ──────── ───────── ───────
+de gretige  32%  39%  30%      19 b (9-80)  67%      34%  13%       10%   1,6      60%       0
+de gemengde 45%  29%  27%      17 b (8-80)  76%      36%   9%        6%   1,9      71%       0
+de defensieve 39% 31%  31%      20 b (8-80)  75%      39%  11%        7%   1,7      65%       0
+```
+
+**Het sterkste punt is niet de balans zelf maar hoe stabiel hij is.** In meting 1
+zwaaide het evenwichtspunt van 50% naar 29% zodra de Nexus beter gespeeld werd;
+hier blijft het tussen 32 en 45% tegen 29 en 39%, over drie heel verschillende
+persona's. Dat is precies wat je wilt van een ontwerp dat aan tafel moet werken
+met spelers van ongelijke sterkte.
+
+Langs de toetslijst uit §5, alleen wat ik kán meten:
+
+- *geen wegloper* — geen enkele persona wint meer dan twee van de vijf partijen.
+- *spanningsboog* — 60 tot 71% van de beslíste partijen wordt gewonnen door de
+  kant die halverwege achterstond, met 1,6 tot 1,9 leiderswissels per partij.
+  In meting 1 was dat 0,2 wissels.
+- *sprints gedood* — nul partijen onder de acht beurten, tegen 32% in de
+  basisstand van de opdracht.
+- *betekenisvolle beslissing* — los doorgeven levert nog altijd een derde van
+  haar punten, dus de keuze tussen "nu innen" en "doorbouwen naar een keten"
+  blijft echt.
+- *geen dode tijd* — **hier faalt het.** Ruim een kwart van de partijen loopt tot
+  het beurtenplafond, en dat is bijna altijd het ingesloten Oog. Dat is de reden
+  dat dit voorstel niet af is zonder een oplossing daarvoor.
+
+---
+
+## Beleefbaarheid — de drie momenten in het lab
+
+Punt 4 van de opdracht: de drie nieuwe momenten moeten zichtbaar en voelbaar
+zijn in de replay. Wat er nu staat:
+
+- **Verharden.** Tegels van dezelfde keten worden aan elkaar gelast getekend:
+  dikke gouden verbindingen tussen de hexen, een dichte rand eromheen, en de
+  gloed staat stil in plaats van te ademen. Een verharde keten leest daardoor
+  als één gelast bouwwerk en niet als vier losse tegels — precies het verschil
+  dat aan tafel telt. In het logboek: *"Keten van 4 verhardt — onaantastbaar, en
+  af: hier kan niets meer bij."*
+- **Verzilveren.** *"De Laatste verzilvert een keten van 4 in één handeling —
+  +8 op haar teller (11 van 11), 8 substantie keert terug. De sporen zijn nu
+  gewoon spoor."* De lassen verdwijnen op datzelfde moment van het bord; je ziet
+  het bouwwerk uit elkaar vallen tot losse merktekens.
+- **De route.** Het pad van de Zetel naar het Oog loopt als een bewegende
+  stippellijn over het bord, met een brede zachte gloed eronder. Breekt hij, dan
+  staat er *"De weg naar het Oog is verbroken"* in het paars van de Nexus, en de
+  teller bovenin slaat om naar het aantal tegels dat ze nog moet innemen — of
+  naar *"het Oog is ingesloten"* als er helemaal geen weg meer is.
+
+Het Oog heeft een eigen artwork-slot (`public/art/oogtegel.webp`). Zolang het
+definitieve artwork er niet is wordt `Oog.png` gebruikt, met het oog-motief van
+de kaartrug er in goud overheen getekend, zodat de tegel onmiskenbaar is.
+
+De drie momenten zijn in het zettenlogboek uitgelicht — goud voor haar
+mijlpalen, paars voor de zijne — zodat je ze in een lange partij niet
+overslaat. Alle knoppen (K, M, drempel, afstand van het Oog, en de twee
+kandidaat-reparaties hieronder) staan live in het paneel, en de batch-modus
+toont dezelfde cijfers als de meetbank.
 
 ---
 
