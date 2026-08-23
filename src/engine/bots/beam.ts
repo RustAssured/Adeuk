@@ -63,7 +63,8 @@ export function laatsteBeam(g: Game): void {
     const volgende: Knoop[] = [];
     for (const knoop of beam) {
       if (knoop.g.done) continue;
-      for (const z of zetten(knoop.g)) {
+      const ctx = context(knoop.g);
+      for (const z of zetten(knoop.g, ctx)) {
         const k = knoop.g.clone();
         if (!voerUit(k, z)) continue;
         // wachten is toegestaan maar nooit gratis beter dan handelen
@@ -126,11 +127,27 @@ function vooruitblik(g: Game): number {
 
 // ------------------------------------------------------------- zettenruimte
 
-function zetten(g: Game): Zet[] {
+/**
+ * Wat één toestand aan afgeleide gegevens oplevert. conn(), reikbaar() en de
+ * route naar het Oog zijn elk een doorzoeking van het bord; ze één keer per
+ * toestand berekenen in plaats van per tegel scheelt in de meetbank een factor
+ * tien.
+ */
+interface Context {
+  draad: CellKey[];
+  route: Set<CellKey> | null;
+}
+
+function context(g: Game): Context {
+  return {
+    draad: g.conn(),
+    route: g.cfg.oversteek.on ? new Set(g.routeNaarOog() ?? []) : null,
+  };
+}
+
+function zetten(g: Game, ctx = context(g)): Zet[] {
   const out: Zet[] = [];
-  // conn() is de duurste berekening in de engine; hier één keer, en dan
-  // doorgegeven aan alles wat hem nodig heeft
-  const draad = g.conn();
+  const draad = ctx.draad;
 
   for (const c of g.claimable(draad)) out.push({ soort: 'doorgeven', doel: c });
   for (const nr of g.verzilverbaar(draad)) {
@@ -156,7 +173,7 @@ function zetten(g: Game): Zet[] {
   for (const c of order(g.alive)) {
     if (c === g.seat || g.wOf(c) < 1) continue;
     if (g.isVerhard(c)) continue;
-    if (gestrand(g, c)) out.push({ soort: 'terugtrekken', doel: c });
+    if (gestrand(g, c, ctx)) out.push({ soort: 'terugtrekken', doel: c });
   }
 
   // wachten mag: zonder deze optie neemt de zoeker elke beurt de minst slechte
@@ -167,19 +184,14 @@ function zetten(g: Game): Zet[] {
 }
 
 /** Een steen is gestrand als zijn tegel nooit meer iets kan opleveren. */
-function gestrand(g: Game, c: CellKey): boolean {
+function gestrand(g: Game, c: CellKey, ctx: Context): boolean {
   if (g.marks.has(c)) return true;
   if (g.isVerhard(c)) return false;
   if (!g.open.has(c) || g.yieldOf(c) > 0) return false;
   // stil veld: met de middenlaag is hij nog bruikbaar als ketenvulling of route
   if (!g.cfg.verharden.on) return true;
-  if (g.oog && (c === g.oog || opRoute(g, c))) return false;
+  if (g.oog && (c === g.oog || ctx.route?.has(c))) return false;
   return g.vatComponent(c).size < 2 && g.wOf(c) < 2;
-}
-
-function opRoute(g: Game, c: CellKey): boolean {
-  const pad = g.routeNaarOog();
-  return pad ? pad.includes(c) : false;
 }
 
 function voerUit(g: Game, z: Zet): boolean {
@@ -209,7 +221,7 @@ function voerUit(g: Game, z: Zet): boolean {
 
 // ---------------------------------------------------------- waardefunctie
 
-function waarde(g: Game): number {
+function waarde(g: Game, ctx = context(g)): number {
   if (g.done === 'laatste') return 1e6;
 
   const solo = g.cfg.solo;
@@ -219,7 +231,7 @@ function waarde(g: Game): number {
   const middenlaag = cfg.verharden.on || cfg.verzilveren.on;
 
   let v = 0;
-  const draad = g.conn();
+  const draad = ctx.draad;
   const aanDraad = new Set<CellKey>(g.reikbaar(draad).keys());
 
   // ---- 1. wat er al op de teller staat -----------------------------------
@@ -297,7 +309,7 @@ function waarde(g: Game): number {
     v += 24 * vatten + 8 * ijl;
     for (const c of g.alive) {
       if (c === g.seat) continue;
-      if (gestrand(g, c)) lek += g.wOf(c);
+      if (gestrand(g, c, ctx)) lek += g.wOf(c);
     }
   }
 
@@ -321,12 +333,12 @@ function waarde(g: Game): number {
   // het Oog telt apart mee: sluit hij die dicht, dan is de partij voor haar
   // voorbij zonder dat ze het aan haar teller ziet.
   if (cfg.oversteek.on && g.oog) {
-    const tekort = g.routeTekort();
+    const pad = ctx.route && ctx.route.size ? [...ctx.route] : null;
+    const tekort = pad ? 0 : g.routeTekort();
     if (!Number.isFinite(tekort)) {
       v -= 2400; // het Oog is ingesloten: ze kan niet meer winnen
     } else {
       v -= 72 * tekort;
-      const pad = g.routeNaarOog();
       if (pad) {
         // Hoe hard is deze route?
         //   verhard  — hij kan er niets aan doen, ooit;

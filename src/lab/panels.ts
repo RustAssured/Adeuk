@@ -102,6 +102,8 @@ const GROEPEN: Array<{ titel: string; bij: string; knoppen: Knop[] }> = [
       { soort: 'vink', pad: 'oversteek.on', label: 'C · de Oversteek', bij: 'winnen vraagt de teller én een onafgebroken pad van de Zetel naar het Oog' },
       { soort: 'getal', pad: 'oversteek.afstand', label: '— afstand Oog tot Zetel', min: 2, max: 6 },
       { soort: 'vink', pad: 'oversteek.oogMoetVanHaarZijn', label: '— het Oog zelf moet van haar zijn', bij: 'uit: een pad tot náást het Oog volstaat' },
+      { soort: 'vink', pad: 'oversteek.hof', label: '— hof: de buren van het Oog zijn ook onverzwelgbaar', bij: 'niet in de opdracht; hiermee kan hij het Oog niet volledig insluiten' },
+      { soort: 'vink', pad: 'oversteek.onbereikbaarEindigt', label: '— onbereikbaar Oog beëindigt de partij', bij: 'niet in de opdracht; haalt de dode beurten eruit als er geen weg meer is' },
     ],
   },
   {

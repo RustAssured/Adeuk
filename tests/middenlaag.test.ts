@@ -287,6 +287,31 @@ function padNaarOog(g: Game): CellKey[] {
   throw new Error('geen pad naar het Oog');
 }
 
+describe('twee kandidaat-reparaties voor het ingesloten Oog', () => {
+  it('hof: de buren van het Oog zijn dan ook onverzwelgbaar', () => {
+    const g = opzet(20, { oversteek: { hof: true } });
+    const buur = g.nbKeys(g.oog!).find((k) => g.alive.has(k))!;
+    const voor = g.alive.size;
+    g.consume(buur);
+    expect(g.alive.size).toBe(voor);
+    expect(Number.isFinite(g.routeTekort())).toBe(true);
+  });
+
+  it('onbereikbaar eindigt: geen weg meer betekent geen partij meer', () => {
+    const g = opzet(21, { oversteek: { onbereikbaarEindigt: true }, needL: 1 });
+    for (const b of g.nbKeys(g.oog!)) g.alive.delete(b);
+    g.playTurn();
+    expect(g.done).toBe('niets');
+  });
+
+  it('laat de partij zonder die knop gewoon doorlopen', () => {
+    const g = opzet(21, { needL: 1 });
+    for (const b of g.nbKeys(g.oog!)) g.alive.delete(b);
+    g.playTurn();
+    expect(g.done).not.toBe('niets');
+  });
+});
+
 describe('pariteit blijft', () => {
   it('staat de middenlaag standaard uit', () => {
     const v5 = makeConfig();

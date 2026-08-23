@@ -26,9 +26,17 @@ export interface Meting2 {
   losPct: number;
   gemLos: number;
   gemKeten: number;
-  /** partijen waarin hij won terwijl haar teller vol stond: route-blokkade */
+  /**
+   * Zijn nieuwe spel: hij wint terwijl haar teller vol staat, puur doordat de
+   * weg naar het Oog weg is. De opdracht wil dit boven 0% en onder 30%.
+   */
   blokkadePct: number;
-  /** partijen waarin het Oog onbereikbaar raakte */
+  /**
+   * Dezelfde stand, maar niemand wint: haar teller is vol, de weg is weg, en
+   * de partij loopt tegen het beurtenplafond. Dat is dode tijd, geen tegenspel.
+   */
+  klemVolPct: number;
+  /** partijen waarin het Oog helemaal onbereikbaar raakte */
   oogIngeslotenPct: number;
   gemRouteBreuken: number;
   gemSporen: number;
@@ -43,7 +51,7 @@ export function meet(cfg: GameConfig, n: number, seedStart = 0): Meting2 {
   }
   const telling: Record<Uitslag, number> = { laatste: 0, nexus: 0, niets: 0, timeout: 0 };
   let vast = 0, wissels = 0, comebacks = 0, beslist = 0, sprints = 0;
-  let verhard = 0, gebroken = 0, los = 0, keten = 0, blokkade = 0, ingesloten = 0;
+  let verhard = 0, gebroken = 0, los = 0, keten = 0, blokkade = 0, klemVol = 0, ingesloten = 0;
   let breuken = 0, sporen = 0;
   const duren: number[] = [];
   for (const r of rs) {
@@ -62,7 +70,10 @@ export function meet(cfg: GameConfig, n: number, seedStart = 0): Meting2 {
       beslist++;
       if (r.comeback) comebacks++;
     }
-    if (r.uitslag !== 'laatste' && r.tellerVol && !r.routeOpenAanEind) blokkade++;
+    // hij wint doordat de weg weg is
+    if (r.uitslag === 'nexus' && r.tellerVol && !r.routeOpenAanEind) blokkade++;
+    // niemand wint: haar teller vol, de weg weg, en de klok loopt af
+    if (r.uitslag === 'timeout' && r.tellerVol && !r.routeOpenAanEind) klemVol++;
     if (r.oog >= 0 && !r.routeOpenAanEind && r.tellerVol) ingesloten++;
   }
   const pct = (x: number) => (100 * x) / n;
@@ -86,6 +97,7 @@ export function meet(cfg: GameConfig, n: number, seedStart = 0): Meting2 {
     gemLos: los / n,
     gemKeten: keten / n,
     blokkadePct: pct(blokkade),
+    klemVolPct: pct(klemVol),
     oogIngeslotenPct: pct(ingesloten),
     gemRouteBreuken: breuken / n,
     gemSporen: sporen / n,
@@ -99,7 +111,7 @@ export function regel(label: string, m: Meting2): string {
     `klem ${p(m.vastlopers + m.verdeling.timeout > 100 ? 100 : m.vastlopers)} | ` +
     `med ${String(m.medianDuur).padStart(3)}b | ` +
     `verhard ${p(m.verhardPct)} | los ${p(m.losPct)} | ` +
-    `blokk ${p(m.blokkadePct)} | comeback ${p(m.comebackPct)} | ` +
+    `blokk ${p(m.blokkadePct)} | dood ${p(m.klemVolPct)} | comeback ${p(m.comebackPct)} | ` +
     `sprints ${String(m.sprints).padStart(3)}`
   );
 }

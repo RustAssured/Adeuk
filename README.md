@@ -3,9 +3,12 @@
 Regel-engine (port van `docs/v5.py`) en een visueel lab om er metingen mee te
 doen. Opgezet volgens `docs/ADEUK_handoff.md`.
 
-Wat je waarschijnlijk het eerst wilt lezen: **[docs/BEVINDINGEN.md](docs/BEVINDINGEN.md)** —
-wat de metingen opleverden, inclusief een paar dingen die niet kloppen met §2 en §3
-van de handoff.
+Wat je waarschijnlijk het eerst wilt lezen:
+
+- **[docs/BEVINDINGEN.md](docs/BEVINDINGEN.md)** — meting 1: de v5-regels, de
+  afsla-opties en de rekensom van de partij.
+- **[docs/BEVINDINGEN2.md](docs/BEVINDINGEN2.md)** — meting 2: de middenlaag —
+  verharden, verzilveren en de Oversteek.
 
 ## Aan de slag
 
@@ -36,6 +39,14 @@ npm run build    # productiebundel in dist/
 ## Metingen op de opdrachtregel
 
 ```bash
+# meting 2 — de middenlaag
+npm run meet2 -- stand 200         # de meetstand, tegen alle drie de Nexus-persona's
+npm run meet2 -- matrix 150        # K x M x drempel
+npm run meet2 -- ablatie 150       # elk van de drie regels apart uit
+npm run meet2 -- personas 150      # beide bots tegen alle persona's
+npm run meet2 -- oog 150           # het ingesloten Oog en twee kandidaat-reparaties
+
+# meting 1 — de v5-regels en de afsla-opties
 npm run bench -- solo 500          # de solo-batterij uit §4
 npm run bench -- afslag 500 beam   # de drie afsla-opties uit §5A
 npm run bench -- tempo 500 beam    # de tempo-knoppen uit §5B
@@ -58,7 +69,8 @@ src/engine/         de regels — kent geen scherm
   rng.ts            Mersenne Twister met de Python-random-API (bit-identiek)
   hex.ts            axiale coördinaten, ringen, afstand
   game.ts           de port van v5, plus logboek en de afsla-opties
-  config.ts         elke knop uit §5 op één plek
+  config.ts         elke knop uit §5 en de middenlaag, op één plek
+  meting2.ts        de metrieken die meetopdracht 2 vraagt
   batch.ts          de metrieken die §5 per optie vraagt
   bots/gretig.ts    de v5-bot, bevroren — het ijkpunt voor de pariteitstest
   bots/persona.ts   dezelfde heuristiek met gewichten: gretig/defensief/gemengd
@@ -102,5 +114,8 @@ npm run golden   # herschrijft tests/golden/v5.json
   hele draad en alle randen in één oogopslag zien. `src/lab/board.ts` praat
   alleen met een `Snapshot`, dus er kan later een driedimensionale weergave
   naast zonder de engine of het lab te raken.
+- Het definitieve artwork voor de Oog-tegel. Er is een eigen slot
+  (`public/art/oogtegel.webp`); zolang dat er niet is wordt `Oog.png` gebruikt,
+  met het oog-motief van de kaartrug eroverheen getekend.
 - Laag 5 (vlagplaatsing, verval, kosmische kaarten, supernova) staat nog niet
   in de engine — §5C zegt: pas nadat de klem klopt.

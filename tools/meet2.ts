@@ -5,6 +5,7 @@
  *   npm run meet2 -- personas [n]   de drie Nexus-persona's tegen beide bots
  *   npm run meet2 -- ablatie [n]    elk van de drie regels apart uit
  *   npm run meet2 -- stand [n]      één stand, alle cijfers
+ *   npm run meet2 -- oog [n]        het ingesloten Oog: twee kandidaat-reparaties
  */
 import { meeting2, type DeepPartial, type GameConfig } from '../src/engine/config';
 import { meet, regel, type Meting2 } from '../src/engine/meting2';
@@ -38,8 +39,8 @@ function volledig(label: string, m: Meting2): void {
       `(${m.gemLos.toFixed(1)} los, ${m.gemKeten.toFixed(1)} uit ketens)`,
   );
   console.log(
-    `  zijn nieuwe spel  route-blokkade ${p(m.blokkadePct)}   ` +
-      `Oog onbereikbaar met volle teller ${p(m.oogIngeslotenPct)}`,
+    `  zijn nieuwe spel  hij wint via de route ${p(m.blokkadePct)}   ` +
+      `(dode partijen met dezelfde stand ${p(m.klemVolPct)})`,
   );
 }
 
@@ -50,7 +51,9 @@ if (cmd === 'stand') {
   }
 } else if (cmd === 'matrix') {
   kop(`Matrix K x M x drempel — ${N} seeds, tegen de gemengde Nexus`);
-  console.log(`${'stand'.padEnd(26)} uitslag                    duur   ketens  punten  blokkade`);
+  console.log(
+    `${'stand'.padEnd(26)} uitslag                    duur   ketens  punten  blokkade/dood  sprints`,
+  );
   for (const K of [3, 4, 5]) {
     for (const M of [1.5, 2]) {
       for (const drempel of [9, 11, 13]) {
@@ -62,7 +65,8 @@ if (cmd === 'stand') {
           `K${K} M${M} drempel ${String(drempel).padStart(2)}`.padEnd(26) +
             ` L ${p(m.verdeling.laatste)} N ${p(m.verdeling.nexus)} klem ${p(m.vastlopers)}  ` +
             `${String(m.medianDuur).padStart(3)}b  ` +
-            `verhard ${p(m.verhardPct)}  los ${p(m.losPct)}  ${p(m.blokkadePct)}`,
+            `verhard ${p(m.verhardPct)}  los ${p(m.losPct)}  ` +
+            `${p(m.blokkadePct)}/${p(m.klemVolPct)}  sprint ${String(m.sprints).padStart(3)}`,
         );
       }
     }
@@ -90,6 +94,26 @@ if (cmd === 'stand') {
   ];
   for (const [label, patch] of varianten) {
     console.log(regel(label, meet(meeting2({ ...patch, nexusBot: 'gemengd' }), N)));
+  }
+} else if (cmd === 'oog') {
+  kop(`Het ingesloten Oog — ${N} seeds, tegen de gemengde Nexus`);
+  const varianten: Array<[string, DeepPartial<GameConfig>]> = [
+    ['zoals opgeschreven', {}],
+    ['+ hof rond het Oog', { oversteek: { hof: true } }],
+    ['+ onbereikbaar eindigt', { oversteek: { onbereikbaarEindigt: true } }],
+    ['+ allebei', { oversteek: { hof: true, onbereikbaarEindigt: true } }],
+    ['pad tot náást het Oog', { oversteek: { oogMoetVanHaarZijn: false } }],
+    ['Oog op afstand 3', { oversteek: { afstand: 3 } }],
+  ];
+  for (const [label, patch] of varianten) {
+    const m = meet(meeting2({ ...patch, nexusBot: 'gemengd' }), N);
+    console.log(
+      `${label.padEnd(26)} L ${p(m.verdeling.laatste)} N ${p(m.verdeling.nexus)} ` +
+        `niets ${p(m.verdeling.niets)} plafond ${p(m.verdeling.timeout)} | ` +
+        `med ${String(m.medianDuur).padStart(4)}b | ` +
+        `blokkade ${p(m.blokkadePct)} | dood ${p(m.klemVolPct)} | sprints ${String(m.sprints).padStart(3)} | ` +
+        `comeback ${p(m.comebackPct)}`,
+    );
   }
 } else {
   console.error(`onbekend commando: ${cmd}`);

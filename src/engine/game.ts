@@ -713,6 +713,7 @@ export class Game {
     if (this.cfg.spoorVreten === 'nooit' && this.marks.has(c)) return;
     if (this.isVerhard(c)) return;        // onaantastbaar (regel A)
     if (c === this.oog) return;           // het Oog blijft liggen (regel C)
+    if (this.cfg.oversteek.hof && this.oog && this.nbKeys(this.oog).includes(c)) return;
     this.breukCheck(c, 'verzwolgen');
     this.alive.delete(c);
     this.pileN += 1;
@@ -869,6 +870,23 @@ export class Game {
     if (this.done) return;
     this.hist.push([this.pileL, this.pileN]);
     if (this.alive.size <= 1) this.done = 'niets';
+    // is er geen weg meer naar het Oog, dan is er niets meer te spelen
+    if (
+      !this.done &&
+      this.cfg.oversteek.on &&
+      this.cfg.oversteek.onbereikbaarEindigt &&
+      !Number.isFinite(this.routeTekort())
+    ) {
+      if (this.trace) {
+        this.emit(
+          'route-dicht',
+          'nexus',
+          this.oog ? [IDX.get(this.oog)!] : [],
+          `Het Oog is ingesloten. Er is geen weg meer; het universum eindigde.`,
+        );
+      }
+      this.done = 'niets';
+    }
     this.noteerVerandering();
   }
 

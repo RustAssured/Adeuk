@@ -68,6 +68,18 @@ export interface OversteekConfig {
    * standaard de strenge lezing, met een knop om de andere te meten.
    */
   oogMoetVanHaarZijn: boolean;
+  /**
+   * Niet in de opdracht gevraagd, wel nodig om te meten: in de meetstand raakt
+   * het Oog regelmatig volledig ingesloten. Zij kan dan nooit meer winnen, hij
+   * heeft haar teller niet nodig, en er volgen tientallen dode beurten.
+   *
+   * `hof` maakt de directe buren van het Oog ook onverzwelgbaar, zodat er altijd
+   * een aanlanding blijft. `onbereikbaarEindigt` laat het universum eindigen
+   * zodra er geen weg meer naar het Oog is. Allebei standaard uit — de meting
+   * gaat eerst over de regel zoals hij is opgeschreven.
+   */
+  hof: boolean;
+  onbereikbaarEindigt: boolean;
 }
 
 export interface GameConfig {
@@ -139,7 +151,7 @@ export const V5_CONFIG: GameConfig = {
   spoorVreten: 'alles',
   verharden: { on: false, K: 4 },
   verzilveren: { on: false, M: 2 },
-  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true },
+  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false },
   afslag: {
     omsingeling: { on: false, minRandZijden: 3, bordrandTelt: false },
     stilstand: { on: false },
@@ -222,7 +234,7 @@ export function meeting2(patch: DeepPartial<GameConfig> = {}): GameConfig {
     afslag: { omsingeling: { on: true, minRandZijden: 3, bordrandTelt: false } },
     verharden: { on: true, K: 4 },
     verzilveren: { on: true, M: 2 },
-    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true },
+    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false },
     laatsteBot: 'beam',
     nexusBot: 'gretig',
   });
