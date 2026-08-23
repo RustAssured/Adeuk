@@ -134,6 +134,9 @@ button, input, select { font-family: inherit; color: inherit; }
 .teller.zij .teller-pip.vol { background: var(--goud); box-shadow: 0 0 6px rgba(201,164,74,0.7); }
 .teller.hij .teller-kop b { color: var(--aantrekking); }
 .teller.hij .teller-pip.vol { background: var(--aantrekking); box-shadow: 0 0 6px rgba(155,127,212,0.6); }
+.teller.oversteek .teller-kop b { color: var(--inkt-zacht); font-family: var(--sans); font-size: 11px; letter-spacing: 0.04em; text-transform: none; }
+.teller.oversteek.open .teller-kop b { color: var(--goud); }
+.teller.oversteek.dicht .teller-kop b { color: var(--aantrekking); }
 
 /* -------------------------------------------------------------- hoofdvak */
 
@@ -258,6 +261,19 @@ button, input, select { font-family: inherit; color: inherit; }
 .zet .merkje { font-family: var(--mono); font-size: 10px; color: #4c4560; text-align: right; padding-top: 1px; }
 .zet.laatste .merkje { color: var(--goud); }
 .zet.nexus .merkje { color: var(--aantrekking); }
+.zet.mijlpaal {
+  color: var(--inkt);
+  background: rgba(201, 164, 74, 0.07);
+  border-left-color: rgba(201, 164, 74, 0.55);
+}
+.zet.mijlpaal .merkje { color: var(--goud); }
+.zet.mijlpaal.verharden, .zet.mijlpaal.verzilveren { font-weight: 500; }
+.zet.mijlpaal.route-dicht, .zet.mijlpaal.keten-gebroken {
+  background: rgba(155, 127, 212, 0.09);
+  border-left-color: rgba(155, 127, 212, 0.6);
+}
+.zet.mijlpaal.route-dicht .merkje, .zet.mijlpaal.keten-gebroken .merkje { color: var(--aantrekking); }
+
 .zet.beurtkop {
   margin-top: 10px; padding: 5px 8px;
   font-family: var(--serif); font-size: 14px; color: var(--goud-zacht);

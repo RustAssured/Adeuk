@@ -6,10 +6,10 @@
  */
 import './style.css';
 import { Game } from '../engine/game';
-import { makeConfig, type GameConfig } from '../engine/config';
+import { meeting2, type GameConfig } from '../engine/config';
 import type { GameEvent, Snapshot, TileType, Uitslag } from '../engine/types';
 import { laadArt } from './art';
-import { Bord } from './board';
+import { Bord, routeUitSnapshot } from './board';
 import { bouwKnoppen, bouwZetlijst, el, toonBatch } from './panels';
 import type { BatchBericht, BatchOpdracht } from './batch-worker';
 
@@ -24,7 +24,10 @@ interface Partij {
   turns: number;
 }
 
-const cfg: GameConfig = makeConfig({ laatsteBot: 'beam' });
+// Het lab opent in de meetstand van opdracht 2: de aanbevolen stand uit meting 1
+// plus de drie regels van de middenlaag. Alles is in het knoppenpaneel uit te
+// zetten, tot en met de v5-stand aan toe.
+const cfg: GameConfig = meeting2();
 
 let partij: Partij | null = null;
 let i = 0;
@@ -100,12 +103,36 @@ function tekenTellers(snap: Snapshot): void {
     ]);
   };
   const opBord = snap.w.reduce((a, b) => a + b, 0);
-  vak.replaceChildren(
+  const kinderen: Node[] = [
     maak('zij', 'staande sporen', Math.max(0, snap.pileL), cfg.needL,
       `voorraad ${snap.stock} · bord ${opBord} · doos ${snap.box}`),
     maak('hij', 'verzwolgen tegels', snap.pileN, cfg.needN,
       `${snap.alive.reduce((a, b) => a + b, 0)} tegels over`),
-  );
+  ];
+  if (cfg.oversteek.on) {
+    const verhardeTegels = snap.verhard.filter((x) => x > 0).length;
+    const stand =
+      snap.routeTekort < 0
+        ? 'het Oog is ingesloten'
+        : snap.routeOpen
+          ? 'de weg ligt er'
+          : `nog ${snap.routeTekort} ${snap.routeTekort === 1 ? 'tegel' : 'tegels'}`;
+    const klasse = snap.routeTekort < 0 ? 'dicht' : snap.routeOpen ? 'open' : '';
+    kinderen.push(
+      el('div', { class: `teller oversteek ${klasse}` }, [
+        el('div', { class: 'teller-kop' }, [
+          el('span', {}, ['de oversteek']),
+          el('b', {}, [stand]),
+        ]),
+        el('div', { class: 'teller-kop' }, [
+          el('span', {}, [
+            verhardeTegels ? `${verhardeTegels} tegels verhard` : 'nog geen keten verhard',
+          ]),
+        ]),
+      ]),
+    );
+  }
+  vak.replaceChildren(...kinderen);
 }
 
 function tekenUitslag(ev: GameEvent): void {
@@ -142,6 +169,7 @@ function lus(t: number): void {
         snap: ev.after,
         tiles: partij.tiles,
         seat: partij.seat,
+        route: routeUitSnapshot(ev.after, partij.seat),
         markeer: ev.cells,
         wie: ev.actor,
         hover,

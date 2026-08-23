@@ -30,6 +30,14 @@ const KAART = {
 };
 
 /**
+ * De Oog-tegel (meetopdracht 2, regel C) heeft een eigen slot, zodat het
+ * definitieve artwork later één bestand is. Zolang dat er niet is, wordt
+ * Oog.png hexagonaal gemaskeerd gebruikt; het lab tekent er hoe dan ook het
+ * oog-motief van de kaartrug overheen, zodat de tegel onmiskenbaar is.
+ */
+const OOGTEGEL_BRON = 'Oog.png';
+
+/**
  * De kaartrug is zelf al een hexagon, maar een iets bredere dan een
  * regelmatige: gemeten 1060 x 1175 px, verhouding 0,902 tegen 0,866. Recht
  * maskeren snijdt daarom de gouden rand aan weerszijden af. Deze uitsnede
@@ -41,7 +49,7 @@ const UITSNEDE = {
 };
 
 /** de tegels op het bord; de rest is decor en mag groter blijven */
-const TEGELS = new Set(['planeet', 'bewoond', 'komeet', 'gat', 'stil', 'seat', 'rug']);
+const TEGELS = new Set(['planeet', 'bewoond', 'komeet', 'gat', 'stil', 'seat', 'rug', 'oogtegel']);
 
 const MAAT = 512;   // tegelkant in px — scherp genoeg voor 2x op een grote hex
 const DECOR = 768;
@@ -94,6 +102,21 @@ async function main() {
     totaal += size;
     manifest[sleutel] = { bestand: `art/${sleutel}.webp`, maat, hex: TEGELS.has(sleutel) };
     console.log(`  ${sleutel.padEnd(10)} ${String(maat).padStart(4)}px  ${(size / 1024).toFixed(0).padStart(4)} kB`);
+  }
+
+  // de Oog-tegel: eigen slot, voorlopig gevuld met Oog.png
+  if (aanwezig.includes(OOGTEGEL_BRON)) {
+    const uit = join(dst, 'oogtegel.webp');
+    await sharp(join(src, OOGTEGEL_BRON))
+      .resize(MAAT, MAAT, { fit: 'cover' })
+      .composite([{ input: hexMasker(MAAT), blend: 'dest-in' }])
+      .ensureAlpha()
+      .webp({ quality: 88, effort: 5 })
+      .toFile(uit);
+    const { size } = await stat(uit);
+    totaal += size;
+    manifest.oogtegel = { bestand: 'art/oogtegel.webp', maat: MAAT, hex: true, voorlopig: true };
+    console.log(`  ${'oogtegel'.padEnd(10)} ${String(MAAT).padStart(4)}px  ${(size / 1024).toFixed(0).padStart(4)} kB  (voorlopig: ${OOGTEGEL_BRON})`);
   }
 
   await writeFile(join(dst, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');

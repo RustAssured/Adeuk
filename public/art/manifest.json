@@ -48,5 +48,11 @@
     "bestand": "art/oog.webp",
     "maat": 768,
     "hex": false
+  },
+  "oogtegel": {
+    "bestand": "art/oogtegel.webp",
+    "maat": 512,
+    "hex": true,
+    "voorlopig": true
   }
 }

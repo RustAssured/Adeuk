@@ -55,7 +55,7 @@ const GROEPEN: Array<{ titel: string; bij: string; knoppen: Knop[] }> = [
     knoppen: [
       { soort: 'getal', pad: 'acts', label: 'handelingen van de Laatste', min: 1, max: 5 },
       { soort: 'getal', pad: 'nexusMoves', label: 'stappen van de Nexus', min: 1, max: 4 },
-      { soort: 'getal', pad: 'needL', label: 'sporen die zij nodig heeft', min: 4, max: 20 },
+      { soort: 'getal', pad: 'needL', label: 'sporen die zij nodig heeft', bij: 'met de Oversteek aan is dit de drempel, niet de winst zelf', min: 4, max: 24 },
       { soort: 'getal', pad: 'needN', label: 'tegels die hij nodig heeft', bij: 'sporen + tegels moeten samen boven de 36 uitkomen, anders kunnen ze het allebei halen', min: 10, max: 36 },
     ],
   },
@@ -89,6 +89,19 @@ const GROEPEN: Array<{ titel: string; bij: string; knoppen: Knop[] }> = [
       { soort: 'vink', pad: 'afslag.omsingeling.bordrandTelt', label: '— bordrand telt mee' },
       { soort: 'vink', pad: 'afslag.stilstand.on', label: '2 · stilstand', bij: 'hij slaat zijn hele beurt over, ook de verplichte hap, en slaat één steen af' },
       { soort: 'vink', pad: 'afslag.hongerVoorbij.on', label: '3 · honger voorbij', bij: 'staat hij helemaal ingesloten door vat, dan mag hij er één in zijn geheel verzwelgen' },
+    ],
+  },
+  {
+    titel: 'De middenlaag',
+    bij: 'Uit de speeltest: het spel is puur chasen, zij oogt machteloos, hij heeft geen eigen spel. Deze drie regels zijn het antwoord.',
+    knoppen: [
+      { soort: 'vink', pad: 'verharden.on', label: 'A · verharden', bij: 'een aaneengesloten groep van K vat-tegels wordt onaantastbaar, en is daarmee ook af' },
+      { soort: 'getal', pad: 'verharden.K', label: '— K, tegels per keten', min: 2, max: 8 },
+      { soort: 'vink', pad: 'verzilveren.on', label: 'B · verzilveren', bij: 'een hele verharde keten in één handeling, voor tegels x M punten' },
+      { soort: 'getal', pad: 'verzilveren.M', label: '— M, vermenigvuldiger', bij: 'los doorgeven blijft 1 punt per tegel; bij een hoge M is dat dood', min: 1, max: 3, stap: 0.5 },
+      { soort: 'vink', pad: 'oversteek.on', label: 'C · de Oversteek', bij: 'winnen vraagt de teller én een onafgebroken pad van de Zetel naar het Oog' },
+      { soort: 'getal', pad: 'oversteek.afstand', label: '— afstand Oog tot Zetel', min: 2, max: 6 },
+      { soort: 'vink', pad: 'oversteek.oogMoetVanHaarZijn', label: '— het Oog zelf moet van haar zijn', bij: 'uit: een pad tot náást het Oog volstaat' },
     ],
   },
   {
@@ -200,7 +213,11 @@ const MERKJE: Record<string, string> = {
   opzet: '◇', beurt: '', oogst: '↑', reiken: '·', vatten: '◆', randsprong: '⤳',
   doorgeven: '✦', terugtrekken: '↩', stap: '→', verzwelgen: '✕', voeden: '+',
   'spoor-weg': '✧', omsingeling: '⊘', stilstand: '‖', honger: '◉', klem: '—', einde: '■',
+  verharden: '⬢', 'keten-gebroken': '⬡', verzilveren: '✷', 'route-open': '⟶', 'route-dicht': '⤬',
 };
+
+/** De drie nieuwe momenten uit meetopdracht 2 mogen niet wegvallen in de lijst. */
+const OPVALLEND = new Set(['verharden', 'verzilveren', 'route-open', 'route-dicht', 'keten-gebroken']);
 
 export function bouwZetlijst(
   vak: HTMLElement,
@@ -217,7 +234,10 @@ export function bouwZetlijst(
   const rijen: HTMLElement[] = [];
   for (const ev of events) {
     const klas =
-      'zet ' + (ev.kind === 'beurt' ? 'beurtkop ' : '') + ev.actor;
+      'zet ' +
+      (ev.kind === 'beurt' ? 'beurtkop ' : '') +
+      (OPVALLEND.has(ev.kind) ? `mijlpaal ${ev.kind} ` : '') +
+      ev.actor;
     const rij = el('div', { class: klas });
     if (ev.kind === 'beurt') {
       rij.append(el('span', { class: 'merkje' }, ['']), el('span', {}, [ev.text]));

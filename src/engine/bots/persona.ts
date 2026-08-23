@@ -45,6 +45,15 @@ export interface NexusGewichten {
   beweeglijkheid: number;
   /** bonus voor stappen richting de Zetel */
   richtingZetel: number;
+  /**
+   * Bonus voor tegels naast een vat-groep die één tegel van verharden af staat.
+   * Zo'n groep is zijn laatste kans: verhardt hij eenmaal, dan kan hij er nooit
+   * meer bij. Hij komt er niet ín, dus hij moet hem insluiten en de omsingeling
+   * het werk laten doen.
+   */
+  ketenBreken: number;
+  /** bonus voor het wegvreten van een spoor dat op haar route naar het Oog ligt */
+  routeVreten: number;
   ruis: number;
 }
 
@@ -55,9 +64,9 @@ export const LAATSTE_GEWICHTEN: Record<string, LaatsteGewichten> = {
 };
 
 export const NEXUS_GEWICHTEN: Record<string, NexusGewichten> = {
-  gretig: { buurStenen: 1.2, ijl: 2, spoor: 3.5, opbrengst: 0.6, beweeglijkheid: 0, richtingZetel: 0, ruis: 1 },
-  defensief: { buurStenen: 0.6, ijl: 1.5, spoor: 3, opbrengst: 0.4, beweeglijkheid: 1.4, richtingZetel: 0.2, ruis: 0.6 },
-  gemengd: { buurStenen: 1.0, ijl: 2, spoor: 3.5, opbrengst: 0.5, beweeglijkheid: 0.7, richtingZetel: 0.4, ruis: 0.8 },
+  gretig: { buurStenen: 1.2, ijl: 2, spoor: 3.5, opbrengst: 0.6, beweeglijkheid: 0, richtingZetel: 0, ketenBreken: 0, routeVreten: 0, ruis: 1 },
+  defensief: { buurStenen: 0.6, ijl: 1.5, spoor: 3, opbrengst: 0.4, beweeglijkheid: 1.4, richtingZetel: 0.2, ketenBreken: 3.5, routeVreten: 4, ruis: 0.6 },
+  gemengd: { buurStenen: 1.0, ijl: 2, spoor: 3.5, opbrengst: 0.5, beweeglijkheid: 0.7, richtingZetel: 0.4, ketenBreken: 4.5, routeVreten: 5, ruis: 0.8 },
 };
 
 // ------------------------------------------------------------ de Laatste
@@ -84,6 +93,20 @@ export function laatsteHeuristisch(g: Game, W: LaatsteGewichten): void {
       }
     }
 
+    // een verharde keten verzilveren gaat vóór los doorgeven: één handeling
+    // voor de hele keten
+    const ketens = g.verzilverbaar();
+    if (ketens.length) {
+      let beste = ketens[0];
+      for (const nr of ketens) if (g.ketenWaarde(nr) > g.ketenWaarde(beste)) beste = nr;
+      g.verzilver(beste);
+      if (g.winstLaatste()) {
+        g.done = 'laatste';
+        return;
+      }
+      continue;
+    }
+
     // doorgeven
     const cl = g.claimable();
     if (cl.length) {
@@ -103,7 +126,7 @@ export function laatsteHeuristisch(g: Game, W: LaatsteGewichten): void {
       if (bank.length) {
         bank.sort((a, b) => g.yieldOf(b) - g.yieldOf(a) || nexusAf(b) - nexusAf(a));
         g.claim(bank[0]);
-        if (g.pileL >= g.cfg.needL) {
+        if (g.winstLaatste()) {
           g.done = 'laatste';
           return;
         }
@@ -195,7 +218,21 @@ export function nexusHeuristisch(g: Game, W: NexusGewichten): void {
 
   if (g.cfg.afslag.stilstand.on) {
     const stappen = g.nbKeys(g.npos).filter((x) => g.alive.has(x) && !g.isVat(x));
-    const vatten = g.nbKeys(g.npos).filter((x) => g.alive.has(x) && g.isVat(x) && x !== g.seat);
+    const vatten = g.nbKeys(g.npos).filter(
+      (x) => g.alive.has(x) && g.isVat(x) && x !== g.seat && !g.isVerhard(x),
+    );
+    // een groep die één tegel van verharden af staat is nú of nooit
+    const bijnaVerhard = vatten.filter(
+      (x) => g.cfg.verharden.on && g.vatComponent(x).size >= g.cfg.verharden.K - 1,
+    );
+    if (bijnaVerhard.length) {
+      let best = bijnaVerhard[0];
+      for (const c of bijnaVerhard) {
+        if (g.vatComponent(c).size > g.vatComponent(best).size) best = c;
+      }
+      g.stilstandAfslag(best);
+      return;
+    }
     if (stappen.length <= 1 && vatten.length) {
       let best = vatten[0];
       for (const c of vatten) if (g.yieldOf(c) > g.yieldOf(best)) best = c;
@@ -209,6 +246,10 @@ export function nexusHeuristisch(g: Game, W: NexusGewichten): void {
   for (let step = 0; step < g.cfg.nexusMoves; step++) {
     const opts = g.nbKeys(g.npos).filter((x) => g.nexusMag(x));
     if (!opts.length) break;
+    // haar huidige weg naar het Oog: elke tegel daarvan die hij weghaalt kost
+    // haar de oversteek, ook als haar teller allang vol staat
+    const route = W.routeVreten > 0 && g.cfg.oversteek.on ? new Set(g.routeNaarOog() ?? []) : null;
+    const K = g.cfg.verharden.K;
     let best = opts[0];
     let bestS = -1e9;
     for (const x of opts) {
@@ -217,6 +258,18 @@ export function nexusHeuristisch(g: Game, W: NexusGewichten): void {
       if (g.wOf(x) === 1) s += W.ijl;
       if (g.marks.has(x)) s += W.spoor;
       s += g.yieldOf(x) * W.opbrengst;
+      if (route && route.has(x)) s += W.routeVreten;
+      if (W.ketenBreken > 0 && g.cfg.verharden.on) {
+        // insluiten loont: zodra een vat-tegel genoeg rand-zijden heeft slaat
+        // de omsingeling er een steen af en valt de groep uit elkaar
+        let dreiging = 0;
+        for (const y of g.nbKeys(x)) {
+          if (!g.alive.has(y) || g.wOf(y) < 2 || g.isVerhard(y)) continue;
+          const groep = g.vatComponent(y);
+          if (groep.size >= K - 1) dreiging = Math.max(dreiging, groep.size);
+        }
+        if (dreiging) s += W.ketenBreken * (dreiging / K);
+      }
       // beweeglijkheid ná de stap: de tegel die hij verlaat is dan weg
       const vrij = g.nbKeys(x).filter(
         (y) => y !== g.npos && g.alive.has(y) && g.wOf(y) < 2,

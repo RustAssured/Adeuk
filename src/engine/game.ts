@@ -85,6 +85,24 @@ export class Game {
   /** sporen die hij deze beurt al van haar teller afhaalde */
   spoorAfDezeBeurt = 0;
 
+  // --- de middenlaag (meetopdracht 2) ---
+  /** verharde ketens: nummer -> tegels. Nummer 0 bestaat niet. */
+  ketens = new Map<number, Set<CellKey>>();
+  /** omgekeerde index: tegel -> ketennummer */
+  ketenVan = new Map<CellKey, number>();
+  private volgendeKeten = 1;
+  /** het Oog, of null als de Oversteek uit staat */
+  oog: CellKey | null = null;
+  private routeOpenVorig = false;
+
+  // tellers voor het rapport
+  ketensVerhard = 0;
+  ketensGebroken = 0;
+  losPunten = 0;
+  ketenPunten = 0;
+  verzilverd = 0;
+  routeBreuken = 0;
+
   // --- logboek ---
   trace: boolean;
   events: GameEvent[] = [];
@@ -119,8 +137,258 @@ export class Game {
     const fallback = ALL_KEYS.filter((k) => k !== this.seat);
     this.npos = this.rng.choice(pool.length ? pool : fallback);
 
+    // Het Oog: een tegel op afstand `afstand` van de Zetel. Dezelfde opzetvorm
+    // als de Nexus-plaatsing, inclusief de terugval — staat de Zetel in het
+    // centrum, dan bestáát er geen hex op afstand 4 en wordt het de verste die
+    // er wel is. Zie docs/BEVINDINGEN2.md.
+    if (this.cfg.oversteek.on) {
+      const doel = this.cfg.oversteek.afstand;
+      const opAfstand = ALL.filter(
+        (c) => dist(c, seatAx) === doel && ckey(c) !== this.seat && ckey(c) !== this.npos,
+      ).map(ckey);
+      if (opAfstand.length) {
+        this.oog = this.rng.choice(opAfstand);
+      } else {
+        let verste = 0;
+        for (const c of ALL) verste = Math.max(verste, dist(c, seatAx));
+        const terugval = ALL.filter(
+          (c) => dist(c, seatAx) === verste && ckey(c) !== this.seat && ckey(c) !== this.npos,
+        ).map(ckey);
+        this.oog = terugval.length ? this.rng.choice(terugval) : null;
+      }
+    }
+
     this.stock = this.cfg.start;
     this.box = this.cfg.total - this.cfg.start;
+  }
+
+  // ------------------------------------------------- verharden (regel A)
+
+  /** Hoort deze tegel bij een verharde keten? */
+  isVerhard(k: CellKey): boolean {
+    return this.ketenVan.has(k);
+  }
+
+  /**
+   * De aaneengesloten groep vat-tegels rond `t`, met de verharde tegels
+   * eruit gelaten: een verharde keten is *af* en telt niet mee, dus vatten
+   * ernaast begint een nieuwe groep.
+   */
+  vatComponent(t: CellKey): Set<CellKey> {
+    const uit = new Set<CellKey>();
+    if (this.wOf(t) < 2 || this.isVerhard(t) || t === this.seat) return uit;
+    const stapel = [t];
+    while (stapel.length) {
+      const c = stapel.pop()!;
+      if (uit.has(c)) continue;
+      uit.add(c);
+      for (const x of this.nbKeys(c)) {
+        if (uit.has(x) || !this.alive.has(x)) continue;
+        if (x === this.seat || this.isVerhard(x) || this.wOf(x) < 2) continue;
+        stapel.push(x);
+      }
+    }
+    return uit;
+  }
+
+  /**
+   * Aangeroepen zodra een tegel vat krijgt. Haalt de groep de K, dan verhardt
+   * hij op dat moment. Een groep kan de K in één keer voorbijschieten als de
+   * nieuwe tegel twee bestaande groepen aan elkaar knoopt; dan verhardt de hele
+   * groep, want elke deelverzameling van K aaneengesloten vat-tegels erin
+   * voldoet aan de regel.
+   */
+  private checkVerharden(t: CellKey): void {
+    if (!this.cfg.verharden.on) return;
+    const groep = this.vatComponent(t);
+    if (groep.size < this.cfg.verharden.K) return;
+    const nr = this.volgendeKeten++;
+    this.ketens.set(nr, groep);
+    for (const c of groep) this.ketenVan.set(c, nr);
+    this.ketensVerhard += 1;
+    if (this.trace) {
+      this.emit(
+        'verharden',
+        'laatste',
+        [...groep].map((c) => IDX.get(c)!),
+        `Keten van ${groep.size} verhardt — onaantastbaar, en af: hier kan niets ` +
+          `meer bij.`,
+      );
+    }
+  }
+
+  /**
+   * Telt mee of een bijna-volle keten stukgeslagen wordt voordat hij verhardt.
+   * Roep dit aan vlak *voor* je stenen van `c` haalt of hem verzwelgt.
+   */
+  private breukCheck(c: CellKey, hoe: string): void {
+    if (!this.cfg.verharden.on || this.wOf(c) < 2 || this.isVerhard(c)) return;
+    const groep = this.vatComponent(c);
+    if (groep.size < this.cfg.verharden.K - 1) return;
+    this.ketensGebroken += 1;
+    if (this.trace) {
+      this.emit(
+        'keten-gebroken',
+        'nexus',
+        [...groep].map((x) => IDX.get(x)!),
+        `Een keten van ${groep.size} — één tegel van verharden af — wordt ` +
+          `gebroken (${hoe}).`,
+      );
+    }
+  }
+
+  // ----------------------------------------------- verzilveren (regel B)
+
+  /** Verharde ketens die aan de draad hangen en dus verzilverd kunnen worden. */
+  verzilverbaar(draad: readonly CellKey[] = this.conn()): number[] {
+    if (!this.cfg.verzilveren.on) return [];
+    const aanDraad = new Set(draad);
+    const uit: number[] = [];
+    for (const [nr, tegels] of this.ketens) {
+      for (const c of tegels) {
+        if (aanDraad.has(c)) {
+          uit.push(nr);
+          break;
+        }
+      }
+    }
+    return uit.sort((a, b) => a - b);
+  }
+
+  /** Punten die het verzilveren van keten `nr` oplevert. */
+  ketenWaarde(nr: number): number {
+    const tegels = this.ketens.get(nr);
+    if (!tegels) return 0;
+    return Math.floor(tegels.size * this.cfg.verzilveren.M);
+  }
+
+  /** De hele keten in één handeling: alles wordt spoor, de stenen keren terug. */
+  verzilver(nr: number): boolean {
+    const tegels = this.ketens.get(nr);
+    if (!tegels) return false;
+    const punten = this.ketenWaarde(nr);
+    let terug = 0;
+    for (const c of tegels) {
+      terug += this.wOf(c);
+      this.setW(c, 0);
+      this.marks.add(c);
+      this.ketenVan.delete(c);
+    }
+    this.ketens.delete(nr);
+    this.stock += terug;
+    this.pileL += punten;
+    this.ketenPunten += punten;
+    this.verzilverd += 1;
+    if (this.trace) {
+      this.emit(
+        'verzilveren',
+        'laatste',
+        [...tegels].map((c) => IDX.get(c)!),
+        `De Laatste verzilvert een keten van ${tegels.size} in één handeling — ` +
+          `+${punten} op haar teller (${this.pileL} van ${this.cfg.needL}), ` +
+          `${terug} substantie keert terug. De sporen zijn nu gewoon spoor.`,
+        { stock: terug, pileL: punten },
+      );
+    }
+    return true;
+  }
+
+  // ------------------------------------------------ de Oversteek (regel C)
+
+  /** Van haar, in de zin van de Oversteek: vat, verhard of spoor — en nog levend. */
+  haarTegel(k: CellKey): boolean {
+    return this.alive.has(k) && (this.wOf(k) >= 2 || this.marks.has(k));
+  }
+
+  /**
+   * Het pad van de Zetel naar het Oog over tegels die van haar zijn, of null.
+   * Verzwolgen spoortegels tellen niet mee: het punt bleef, de tegel is weg.
+   */
+  routeNaarOog(): CellKey[] | null {
+    if (!this.oog || !this.alive.has(this.oog)) return null;
+    if (this.cfg.oversteek.oogMoetVanHaarZijn && !this.haarTegel(this.oog)) return null;
+    const vorige = new Map<CellKey, CellKey | null>([[this.seat, null]]);
+    const rij: CellKey[] = [this.seat];
+    let kop = 0;
+    while (kop < rij.length) {
+      const c = rij[kop++];
+      if (c === this.oog) {
+        const pad: CellKey[] = [];
+        let cur: CellKey | null = c;
+        while (cur) {
+          pad.push(cur);
+          cur = vorige.get(cur) ?? null;
+        }
+        return pad.reverse();
+      }
+      for (const x of this.nbKeys(c)) {
+        if (vorige.has(x) || !this.alive.has(x)) continue;
+        if (x === this.oog) {
+          if (this.cfg.oversteek.oogMoetVanHaarZijn && !this.haarTegel(x)) continue;
+        } else if (!this.haarTegel(x)) continue;
+        vorige.set(x, c);
+        rij.push(x);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Hoeveel tegels ze nog moet innemen om de route rond te krijgen.
+   * 0 = de route ligt er. Oneindig = er is helemaal geen weg meer.
+   */
+  routeTekort(): number {
+    if (!this.oog || !this.alive.has(this.oog)) return Infinity;
+    // 0-1-BFS: haar tegels kosten niets, de rest kost één inname. Een gewone
+    // wachtrij met vooraan/achteraan volstaat, want er zijn maar twee gewichten.
+    const kosten = new Map<CellKey, number>([[this.seat, 0]]);
+    const rij: CellKey[] = [this.seat];
+    let kop = 0;
+    while (kop < rij.length) {
+      const c = rij[kop++];
+      const k = kosten.get(c)!;
+      if (c === this.oog) return k;
+      for (const x of this.nbKeys(c)) {
+        if (!this.alive.has(x)) continue;
+        if (x === this.oog && this.cfg.oversteek.oogMoetVanHaarZijn && !this.haarTegel(x)) {
+          // het Oog moet zelf ook van haar worden
+        }
+        const nieuw = k + (this.haarTegel(x) ? 0 : 1);
+        if (nieuw < (kosten.get(x) ?? Infinity)) {
+          kosten.set(x, nieuw);
+          // kosten 0 hoort vooraan, kosten 1 achteraan; met zo'n klein bord is
+          // opnieuw achteraan zetten en de kosten vergelijken snel genoeg
+          rij.push(x);
+        }
+      }
+    }
+    return kosten.get(this.oog) ?? Infinity;
+  }
+
+  /** Merkt op wanneer de route dichtvalt of weer opengaat — voor de replay. */
+  noteerRoute(): void {
+    if (!this.cfg.oversteek.on) return;
+    const open = this.routeNaarOog() !== null;
+    if (open === this.routeOpenVorig) return;
+    this.routeOpenVorig = open;
+    if (!open) this.routeBreuken += 1;
+    if (this.trace) {
+      this.emit(
+        open ? 'route-open' : 'route-dicht',
+        open ? 'laatste' : 'nexus',
+        this.oog ? [IDX.get(this.oog)!] : [],
+        open
+          ? `De weg naar het Oog ligt er — nog ${Math.max(0, this.cfg.needL - this.pileL)} op de teller.`
+          : `De weg naar het Oog is verbroken.`,
+      );
+    }
+  }
+
+  /** Heeft zij gewonnen? Met de Oversteek is de teller alleen de helft. */
+  winstLaatste(): boolean {
+    if (this.pileL < this.cfg.needL) return false;
+    if (!this.cfg.oversteek.on) return true;
+    return this.routeNaarOog() !== null;
   }
 
   // ---------------------------------------------------------------- helpers
@@ -296,6 +564,7 @@ export class Game {
           );
         }
       }
+      if (na >= 2) this.checkVerharden(t);
       return true;
     }
     return false;
@@ -380,12 +649,14 @@ export class Game {
         );
       }
     }
+    if (na >= 2) this.checkVerharden(t);
     return true;
   }
 
   /** Doorgeven: de tegel blijft liggen, de stenen keren terug, er komt een spoor op. */
   claim(c: CellKey): void {
     this.pileL += 1;
+    this.losPunten += 1;
     const terug = this.wOf(c);
     this.stock += terug;
     this.setW(c, 0);
@@ -408,6 +679,8 @@ export class Game {
     for (const c of draad) {
       if (c === this.seat || this.wOf(c) < 2 || !this.alive.has(c)) continue;
       if (this.marks.has(c)) continue;
+      // een verharde tegel is onderdeel van een keten en gaat alleen in zijn geheel
+      if (this.isVerhard(c)) continue;
       if (this.yieldOf(c) <= 0) continue;
       out.push(c);
     }
@@ -416,6 +689,8 @@ export class Game {
 
   /** Het ventiel: een steen van het bord terug naar de voorraad. */
   withdraw(c: CellKey): void {
+    if (this.isVerhard(c)) return; // een verharde keten geeft niets meer terug
+    this.breukCheck(c, 'zij trekt zelf terug');
     this.setW(c, this.wOf(c) - 1);
     this.stock += 1;
     if (this.trace) {
@@ -436,6 +711,9 @@ export class Game {
   consume(c: CellKey, reden: EventKind = 'verzwelgen'): void {
     if (!this.alive.has(c) || c === this.seat) return;
     if (this.cfg.spoorVreten === 'nooit' && this.marks.has(c)) return;
+    if (this.isVerhard(c)) return;        // onaantastbaar (regel A)
+    if (c === this.oog) return;           // het Oog blijft liggen (regel C)
+    this.breukCheck(c, 'verzwolgen');
     this.alive.delete(c);
     this.pileN += 1;
     const wasSpoor = this.marks.has(c);
@@ -498,7 +776,9 @@ export class Game {
     if (!o.on) return;
     for (const c of order(this.alive)) {
       if (this.wOf(c) < 2 || c === this.seat) continue;
+      if (this.isVerhard(c)) continue; // onaantastbaar, ook via omsingeling
       if (this.randZijden(c) < o.minRandZijden) continue;
+      this.breukCheck(c, 'omsingeling');
       this.setW(c, this.wOf(c) - 1);
       this.box += 1;
       if (this.trace) {
@@ -516,6 +796,8 @@ export class Game {
 
   /** §5A-2 — hij slaat zijn hele beurt over en slaat 1 steen van een vat-tegel. */
   stilstandAfslag(c: CellKey): void {
+    if (this.isVerhard(c)) return;
+    this.breukCheck(c, 'stilstand');
     this.setW(c, this.wOf(c) - 1);
     this.box += 1;
     if (this.trace) {
@@ -534,10 +816,13 @@ export class Game {
   hongerVoorbijMogelijk(): boolean {
     if (!this.cfg.afslag.hongerVoorbij.on) return false;
     const buren = this.nbKeys(this.npos).filter((x) => this.alive.has(x));
-    return buren.length > 0 && buren.every((x) => this.isVat(x));
+    if (!buren.length || !buren.every((x) => this.isVat(x))) return false;
+    // volledig ingesloten door verharde ketens is écht klem: dan mag hij niets
+    return buren.some((x) => !this.isVerhard(x) && x !== this.oog);
   }
 
   hongerVoorbijSlok(c: CellKey): void {
+    if (this.isVerhard(c) || c === this.oog) return;
     if (this.trace) {
       this.emit(
         'honger',
@@ -558,6 +843,7 @@ export class Game {
   /** Mag hij hier staan? Vat is verboden, en bij `spoorVreten: nooit` ook een spoor. */
   nexusMag(k: CellKey): boolean {
     if (!this.alive.has(k) || this.wOf(k) >= 2) return false;
+    if (this.isVerhard(k)) return false;
     if (this.cfg.spoorVreten === 'nooit' && this.marks.has(k)) return false;
     return true;
   }
@@ -576,8 +862,10 @@ export class Game {
       this.emit('beurt', 'systeem', [], `Beurt ${this.turn}.`);
     }
     this.laatsteTurn();
+    this.noteerRoute();
     if (this.done) return;
     this.nexusTurn();
+    this.noteerRoute();
     if (this.done) return;
     this.hist.push([this.pileL, this.pileN]);
     if (this.alive.size <= 1) this.done = 'niets';
@@ -605,11 +893,17 @@ export class Game {
   // -------------------------------------------------------------- logboek
 
   private emitOpzet(): void {
+    const cellen = [IDX.get(this.seat)!, IDX.get(this.npos)!];
+    if (this.oog) cellen.push(IDX.get(this.oog)!);
+    const oogTekst = this.oog
+      ? ` Het Oog ligt op ${dist(unkey(this.oog), unkey(this.seat))} tegels van de Zetel; daar moet ze komen.`
+      : '';
     this.emit(
       'opzet',
       'systeem',
-      [IDX.get(this.seat)!, IDX.get(this.npos)!],
-      `Het bord ligt. De Zetel staat, de Nexus wacht op ${dist(unkey(this.npos), unkey(this.seat))} tegels afstand.`,
+      cellen,
+      `Het bord ligt. De Zetel staat, de Nexus wacht op ${dist(unkey(this.npos), unkey(this.seat))} tegels afstand.` +
+        oogTekst,
     );
   }
 
@@ -633,19 +927,26 @@ export class Game {
     const w = new Array<number>(n);
     const marks = new Array<number>(n);
     const open = new Array<number>(n);
+    const verhard = new Array<number>(n);
     for (let i = 0; i < n; i++) {
       const k = ALL_KEYS[i];
       alive[i] = this.alive.has(k) ? 1 : 0;
       w[i] = this.wOf(k);
       marks[i] = this.marks.has(k) ? 1 : 0;
       open[i] = this.open.has(k) ? 1 : 0;
+      verhard[i] = this.ketenVan.get(k) ?? 0;
     }
+    const tekort = this.cfg.oversteek.on ? this.routeTekort() : Infinity;
     return {
       turn: this.turn,
       alive,
       w,
       marks,
       open,
+      verhard,
+      oog: this.oog ? (IDX.get(this.oog) ?? -1) : -1,
+      routeOpen: this.cfg.oversteek.on && tekort === 0,
+      routeTekort: Number.isFinite(tekort) ? tekort : -1,
       npos: IDX.get(this.npos)!,
       stock: this.stock,
       box: this.box,
@@ -682,6 +983,17 @@ export class Game {
       cost: new Map(this.cost),
       goal: this.goal,
       spoorAfDezeBeurt: this.spoorAfDezeBeurt,
+      ketens: new Map([...this.ketens].map(([nr, set]) => [nr, new Set(set)])),
+      ketenVan: new Map(this.ketenVan),
+      volgendeKeten: this.volgendeKeten,
+      oog: this.oog,
+      routeOpenVorig: this.routeOpenVorig,
+      ketensVerhard: this.ketensVerhard,
+      ketensGebroken: this.ketensGebroken,
+      losPunten: this.losPunten,
+      ketenPunten: this.ketenPunten,
+      verzilverd: this.verzilverd,
+      routeBreuken: this.routeBreuken,
       trace: false,
       events: [],
       evI: 0,
@@ -725,7 +1037,16 @@ export class Game {
       laatsteVerandering: this.laatsteVerandering,
       events: this.trace ? this.events : undefined,
       seat: IDX.get(this.seat)!,
+      oog: this.oog ? (IDX.get(this.oog) ?? -1) : -1,
       tiles: ALL_KEYS.map((k) => this.tileOf(k)),
+      ketensVerhard: this.ketensVerhard,
+      ketensGebroken: this.ketensGebroken,
+      losPunten: this.losPunten,
+      ketenPunten: this.ketenPunten,
+      verzilverd: this.verzilverd,
+      tellerVol: this.pileL >= this.cfg.needL,
+      routeOpenAanEind: this.cfg.oversteek.on && this.routeNaarOog() !== null,
+      routeBreuken: this.routeBreuken,
     };
   }
 }
@@ -733,9 +1054,16 @@ export class Game {
 function eindTekst(uit: Uitslag, g: Game): string {
   switch (uit) {
     case 'laatste':
-      return `De Laatste heeft ${g.cfg.needL} staande sporen. Er ging iets door.`;
-    case 'nexus':
-      return `De Nexus heeft ${g.cfg.needN} tegels verzwolgen. Het universum sloot zich.`;
+      return g.cfg.oversteek.on
+        ? `De Laatste staat op ${g.pileL} en de weg naar het Oog ligt open. Zij is overgestoken.`
+        : `De Laatste heeft ${g.cfg.needL} staande sporen. Er ging iets door.`;
+    case 'nexus': {
+      const geblokkeerd =
+        g.cfg.oversteek.on && g.pileL >= g.cfg.needL
+          ? ' Haar teller stond vol — hij won door de weg naar het Oog weg te vreten.'
+          : '';
+      return `De Nexus heeft ${g.cfg.needN} tegels verzwolgen. Het universum sloot zich.${geblokkeerd}`;
+    }
     case 'niets':
       return `Het bord is op. Het universum eindigde en niets ging door.`;
     default:

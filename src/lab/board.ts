@@ -31,6 +31,8 @@ const ART_VAN_TEGEL: Record<TileType, keyof Art> = {
 
 export interface BordStand {
   snap: Snapshot;
+  /** het pad van de Zetel naar het Oog, als indexen — leeg als er geen ligt */
+  route: number[];
   tiles: Array<TileType | null>;
   seat: number;
   /** hexen die dit moment aandacht vragen — de zet die net gebeurde */
@@ -119,23 +121,30 @@ export class Bord {
       this.tekenTegel(i, snap, tiles, seat, tijd);
     }
 
-    // ---- 3. de draad, over de tegels heen: onder de tegels is hij onzichtbaar
+    // ---- 3. de lassen tussen tegels van dezelfde verharde keten
+    this.tekenKetens(snap);
+
+    // ---- 4. de draad, over de tegels heen: onder de tegels is hij onzichtbaar
     this.tekenDraad(snap, seat);
 
-    // ---- 4. de Nexus
+    // ---- 4b. de oversteek: het pad van de Zetel naar het Oog
+    if (stand.route.length > 1) this.tekenRoute(stand.route, snap, tijd);
+    if (snap.oog >= 0 && snap.alive[snap.oog]) this.tekenOog(this.plek(snap.oog), tijd);
+
+    // ---- 5. de Nexus
     this.tekenNexus(snap.npos, tijd);
 
-    // ---- 5. de Zetel, ná de Nexus: hij mag op de Zetel staan (zie
+    // ---- 6. de Zetel, ná de Nexus: hij mag op de Zetel staan (zie
     //         docs/BEVINDINGEN.md, punt c) en zou hem anders volledig afdekken
     if (snap.alive[seat]) this.tekenZetelRing(this.plek(seat), snap.npos === seat, tijd);
 
-    // ---- 6. markering van de zet die net gebeurde
+    // ---- 7. markering van de zet die net gebeurde
     for (const i of gemarkeerd) {
       if (i < 0 || i >= ALL.length) continue;
       this.tekenMarkering(this.plek(i), wie, tijd);
     }
 
-    // ---- 7. muisaanwijzing
+    // ---- 8. muisaanwijzing
     if (hover >= 0 && hover < ALL.length) {
       const p = this.plek(hover);
       ctx.save();
@@ -243,7 +252,8 @@ export class Bord {
     if (vat) {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
-      const puls = 0.5 + 0.5 * Math.sin(tijd / 620 + i);
+      // een verharde tegel staat stil: hij ademt niet meer, hij ís
+      const puls = snap.verhard[i] > 0 ? 0.85 : 0.5 + 0.5 * Math.sin(tijd / 620 + i);
       const g = ctx.createRadialGradient(p.x, p.y, s * 0.55, p.x, p.y, s * 1.35);
       g.addColorStop(0, `rgba(201,164,74,${0.3 + 0.12 * puls})`);
       g.addColorStop(1, 'rgba(201,164,74,0)');
@@ -265,11 +275,14 @@ export class Bord {
     ctx.restore();
 
     // het plaatje
+    const isOog = i === snap.oog;
     const sleutel: keyof Art = isZetel
       ? 'seat'
-      : open
-        ? (ART_VAN_TEGEL[tiles[i] ?? 'stil'] ?? 'stil')
-        : 'rug';
+      : isOog
+        ? 'oogtegel'
+        : open
+          ? (ART_VAN_TEGEL[tiles[i] ?? 'stil'] ?? 'stil')
+          : 'rug';
     const img = this.art[sleutel];
     const d = rs * 2;
     if (img) {
@@ -284,9 +297,15 @@ export class Bord {
       ctx.fill();
     }
 
+    const verhard = snap.verhard[i] > 0;
+
     // randje: goud voor de Zetel en voor wat van haar is, anders ingehouden
     this.pad(p, rs);
-    if (isZetel) {
+    if (verhard) {
+      // verhard = onaantastbaar: een vaste, dichte rand, geen ademing
+      ctx.strokeStyle = 'rgba(240,222,176,0.95)';
+      ctx.lineWidth = 2.6;
+    } else if (isZetel) {
       ctx.strokeStyle = 'rgba(230,205,143,0.85)';
       ctx.lineWidth = 1.8;
     } else if (vat) {
@@ -384,6 +403,113 @@ export class Bord {
     ctx.arc(p.x, p.y, s * 1.6, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+  }
+
+  /**
+   * Tegels van dezelfde verharde keten worden aan elkaar gelast. Dat is het
+   * verschil dat aan tafel telt: los vat kan hij uithollen, een gelaste keten
+   * niet meer.
+   */
+  private tekenKetens(snap: Snapshot): void {
+    const { ctx } = this;
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (let i = 0; i < ALL.length; i++) {
+      const nr = snap.verhard[i];
+      if (!nr) continue;
+      const a = this.plek(i);
+      for (const j of buren(i)) {
+        if (j <= i || snap.verhard[j] !== nr) continue;
+        const b = this.plek(j);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = 'rgba(240,222,176,0.9)';
+        ctx.lineWidth = Math.max(2, this.size * 0.1);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,247,225,0.95)';
+        ctx.lineWidth = Math.max(0.8, this.size * 0.028);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  /** Het Oog: waar zij naartoe moet. Onverzwelgbaar, dus altijd aanwezig. */
+  private tekenOog(p: { x: number; y: number }, tijd: number): void {
+    const { ctx } = this;
+    const s = this.size;
+    const puls = 0.5 + 0.5 * Math.sin(tijd / 1300);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(p.x, p.y, s * 0.3, p.x, p.y, s * 1.5);
+    g.addColorStop(0, `rgba(230,205,143,${0.16 + 0.08 * puls})`);
+    g.addColorStop(1, 'rgba(230,205,143,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, s * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // het oog-motief van de kaartrug, als merkteken op de tegel
+    ctx.save();
+    ctx.strokeStyle = `rgba(240,222,176,${0.8 + 0.2 * puls})`;
+    ctx.lineWidth = 1.6;
+    const r = s * 0.5;
+    ctx.beginPath();
+    ctx.moveTo(p.x - r, p.y);
+    ctx.quadraticCurveTo(p.x, p.y - r * 0.9, p.x + r, p.y);
+    ctx.quadraticCurveTo(p.x, p.y + r * 0.9, p.x - r, p.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 0.34, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 0.14, 0, Math.PI * 2);
+    ctx.fillStyle = KLEUR.goudLicht;
+    ctx.fill();
+    // dubbele hexrand, zoals de Zetel, maar smaller
+    this.pad(p, s * 0.86);
+    ctx.strokeStyle = `rgba(240,222,176,${0.5 + 0.2 * puls})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** De oversteek zelf: het pad dat haar de winst geeft. */
+  private tekenRoute(route: number[], snap: Snapshot, tijd: number): void {
+    const { ctx } = this;
+    const loop = (tijd / 26) % 22;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < route.length; i++) {
+      const p = this.plek(route[i]);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = 'rgba(255,238,196,0.20)';
+    ctx.lineWidth = Math.max(4, this.size * 0.28);
+    ctx.stroke();
+    ctx.restore();
+
+    // een lopende stippellijn erdoorheen: de oversteek is een beweging
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < route.length; i++) {
+      const p = this.plek(route[i]);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.setLineDash([this.size * 0.22, this.size * 0.3]);
+    ctx.lineDashOffset = -loop;
+    ctx.strokeStyle = 'rgba(255,247,225,0.95)';
+    ctx.lineWidth = Math.max(1.4, this.size * 0.05);
+    ctx.stroke();
+    ctx.restore();
+    void snap;
   }
 
   /** De Zetel blijft herkenbaar, ook als de Nexus erbovenop staat. */
@@ -553,4 +679,37 @@ export function verbonden(snap: Snapshot, seat: number): Set<number> {
 
 export function hexPunten(): readonly Axial[] {
   return ALL;
+}
+
+/**
+ * Het pad van de Zetel naar het Oog over tegels die van haar zijn (vat, verhard
+ * of spoor). Dezelfde regel als Game.routeNaarOog(), maar op een Snapshot, zodat
+ * de tekenlaag de engine niet nodig heeft. `snap.routeOpen` beslist of er er een
+ * ligt; deze functie zoekt alleen wélke.
+ */
+export function routeUitSnapshot(snap: Snapshot, seat: number): number[] {
+  if (!snap.routeOpen || snap.oog < 0 || !snap.alive[snap.oog]) return [];
+  const haar = (i: number) => snap.alive[i] === 1 && (snap.w[i] >= 2 || snap.marks[i] === 1);
+  const vorige = new Map<number, number>([[seat, -1]]);
+  const rij = [seat];
+  let kop = 0;
+  while (kop < rij.length) {
+    const c = rij[kop++];
+    if (c === snap.oog) {
+      const pad: number[] = [];
+      let cur = c;
+      while (cur !== -1) {
+        pad.push(cur);
+        cur = vorige.get(cur)!;
+      }
+      return pad.reverse();
+    }
+    for (const x of buren(c)) {
+      if (vorige.has(x) || !snap.alive[x]) continue;
+      if (x !== snap.oog && !haar(x)) continue;
+      vorige.set(x, c);
+      rij.push(x);
+    }
+  }
+  return [];
 }

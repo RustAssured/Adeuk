@@ -24,6 +24,11 @@ export type EventKind =
   | 'omsingeling'    // afsla-optie 1
   | 'stilstand'      // afsla-optie 2
   | 'honger'         // afsla-optie 3
+  | 'verharden'      // een keten van K vat-tegels wordt onaantastbaar
+  | 'keten-gebroken' // een bijna-volle keten verliest een tegel
+  | 'verzilveren'    // een hele verharde keten wordt in één handeling spoor
+  | 'route-open'     // het pad van de Zetel naar het Oog ligt er
+  | 'route-dicht'    // en is weer verbroken
   | 'klem'           // niemand kan nog iets
   | 'einde';
 
@@ -38,6 +43,14 @@ export interface Snapshot {
   marks: number[];
   /** 1 = open (omgedraaid), 0 = gedekt. */
   open: number[];
+  /** ketennummer per hex, of 0 als de tegel niet verhard is. */
+  verhard: number[];
+  /** index van het Oog in ALL, of -1 als de Oversteek uit staat. */
+  oog: number;
+  /** ligt het pad van de Zetel naar het Oog er op dit moment? */
+  routeOpen: boolean;
+  /** hoeveel tegels ze nog moet innemen om de route rond te krijgen. */
+  routeTekort: number;
   /** index in ALL van de Nexus. */
   npos: number;
   stock: number;
@@ -80,7 +93,26 @@ export interface GameResult {
   laatsteVerandering: number;
   events?: GameEvent[];
   seat: number;
+  oog: number;
   tiles: Array<TileType | null>;
+
+  // --- middenlaag (meetopdracht 2) ---
+  /** ketens die het tot verharding brachten */
+  ketensVerhard: number;
+  /** ketens die op K-1 (of hoger, maar onverhard) een tegel verloren */
+  ketensGebroken: number;
+  /** punten uit los doorgeven */
+  losPunten: number;
+  /** punten uit het verzilveren van hele ketens */
+  ketenPunten: number;
+  /** aantal keer verzilverd */
+  verzilverd: number;
+  /** stond haar teller op de drempel toen de partij eindigde? */
+  tellerVol: boolean;
+  /** lag de route naar het Oog er aan het eind? */
+  routeOpenAanEind: boolean;
+  /** hoe vaak de route brak nadat hij er had gelegen */
+  routeBreuken: number;
 }
 
 export type { CellKey };

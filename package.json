@@ -16,7 +16,8 @@
     "bench": "vite-node tools/bench.ts",
     "trace": "vite-node tools/trace.ts",
     "experimenten": "vite-node tools/experimenten.ts",
-    "voorstel": "vite-node tools/voorstel.ts"
+    "voorstel": "vite-node tools/voorstel.ts",
+    "meet2": "vite-node tools/meet2.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

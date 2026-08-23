@@ -35,6 +35,23 @@ export function laatsteGretig(g: Game): void {
       }
     }
 
+    // Met verzilveren aan (meetopdracht 2) kan hij ook een hele keten innen.
+    // De rest van deze bot blijft de bevroren v5-bot; deze tak staat uit zolang
+    // de regel uit staat, dus de pariteitstest merkt er niets van.
+    if (g.cfg.verzilveren.on) {
+      const ketens = g.verzilverbaar();
+      if (ketens.length) {
+        let beste = ketens[0];
+        for (const nr of ketens) if (g.ketenWaarde(nr) > g.ketenWaarde(beste)) beste = nr;
+        g.verzilver(beste);
+        if (g.winstLaatste()) {
+          g.done = 'laatste';
+          return;
+        }
+        continue;
+      }
+    }
+
     const cl = g.claimable();
     if (cl.length) {
       const K = g.cfg.engines;
@@ -51,7 +68,7 @@ export function laatsteGretig(g: Game): void {
       bank.sort((a, b) => g.yieldOf(b) - g.yieldOf(a));
       if (bank.length) {
         g.claim(bank[0]);
-        if (g.pileL >= g.cfg.needL) {
+        if (g.winstLaatste()) {
           g.done = 'laatste';
           return;
         }
@@ -131,7 +148,9 @@ function stilstandDoelwit(g: Game): CellKey | null {
   if (!g.cfg.afslag.stilstand.on) return null;
   const stappen = g.nbKeys(g.npos).filter((x) => g.alive.has(x) && !g.isVat(x));
   if (stappen.length > 1) return null;
-  const vatten = g.nbKeys(g.npos).filter((x) => g.alive.has(x) && g.isVat(x) && x !== g.seat);
+  const vatten = g.nbKeys(g.npos).filter(
+    (x) => g.alive.has(x) && g.isVat(x) && x !== g.seat && !g.isVerhard(x),
+  );
   if (!vatten.length) return null;
   // sla de meest waardevolle motor af
   let best = vatten[0];

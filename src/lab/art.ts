@@ -2,7 +2,7 @@
 
 export type ArtSleutel =
   | 'planeet' | 'bewoond' | 'komeet' | 'gat' | 'stil'
-  | 'seat' | 'rug' | 'nexus' | 'supernova' | 'oog';
+  | 'seat' | 'rug' | 'nexus' | 'supernova' | 'oog' | 'oogtegel';
 
 const BESTANDEN: Record<ArtSleutel, string> = {
   planeet: 'art/planeet.webp',
@@ -15,6 +15,7 @@ const BESTANDEN: Record<ArtSleutel, string> = {
   nexus: 'art/nexus.webp',
   supernova: 'art/supernova.webp',
   oog: 'art/oog.webp',
+  oogtegel: 'art/oogtegel.webp',
 };
 
 export type Art = Partial<Record<ArtSleutel, HTMLImageElement>>;

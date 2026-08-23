@@ -40,6 +40,36 @@ export type SpoorVreten =
   /** een spoor is onschendbaar: hij kan er niet in, net als in een vat */
   | 'nooit';
 
+/**
+ * Meetopdracht 2 — de middenlaag. Uit de speeltest kwam: het spel is puur
+ * chasen, zij oogt machteloos, hij heeft geen eigen spel. Deze drie regels zijn
+ * het antwoord. Alle drie staan standaard uit, zodat de v5-pariteit blijft
+ * gelden; `MEETING2_CONFIG` zet de meetstand.
+ */
+export interface VerhardenConfig {
+  on: boolean;
+  /** aantal aaneengesloten vat-tegels dat een keten verhardt (3/4/5) */
+  K: number;
+}
+
+export interface VerzilverenConfig {
+  on: boolean;
+  /** vermenigvuldiger bij het verzilveren van een hele keten (1.5 of 2) */
+  M: number;
+}
+
+export interface OversteekConfig {
+  on: boolean;
+  /** afstand van het Oog tot de Zetel bij de opzet */
+  afstand: number;
+  /**
+   * Moet het Oog zelf ook van haar zijn, of volstaat een pad tot ernaast?
+   * De opdracht laat dit open ("een onafgebroken pad van Zetel naar Oog");
+   * standaard de strenge lezing, met een knop om de andere te meten.
+   */
+  oogMoetVanHaarZijn: boolean;
+}
+
 export interface GameConfig {
   // --- lichaam van de Laatste (gesloten kringloop) ---
   /** substantie in voorraad bij de start */
@@ -72,6 +102,11 @@ export interface GameConfig {
   afslag: AfslagConfig;
   spoorVreten: SpoorVreten;
 
+  // --- de middenlaag (meetopdracht 2) ---
+  verharden: VerhardenConfig;
+  verzilveren: VerzilverenConfig;
+  oversteek: OversteekConfig;
+
   laatsteBot: LaatstePersona;
   nexusBot: NexusPersona;
 
@@ -102,6 +137,9 @@ export const V5_CONFIG: GameConfig = {
   harvest: true,
   solo: false,
   spoorVreten: 'alles',
+  verharden: { on: false, K: 4 },
+  verzilveren: { on: false, M: 2 },
+  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true },
   afslag: {
     omsingeling: { on: false, minRandZijden: 3, bordrandTelt: false },
     stilstand: { on: false },
@@ -112,25 +150,83 @@ export const V5_CONFIG: GameConfig = {
   maxTurns: 80,
 };
 
-export function makeConfig(patch: DeepPartial<GameConfig> = {}): GameConfig {
-  const base: GameConfig = {
+/** Een verse kopie van de v5-basis, met de geneste objecten losgemaakt. */
+function versV5(): GameConfig {
+  return {
     ...V5_CONFIG,
     yields: { ...V5_CONFIG.yields },
+    verharden: { ...V5_CONFIG.verharden },
+    verzilveren: { ...V5_CONFIG.verzilveren },
+    oversteek: { ...V5_CONFIG.oversteek },
     afslag: {
       omsingeling: { ...V5_CONFIG.afslag.omsingeling },
       stilstand: { ...V5_CONFIG.afslag.stilstand },
       hongerVoorbij: { ...V5_CONFIG.afslag.hongerVoorbij },
     },
   };
-  const p = patch as Partial<GameConfig> & { afslag?: DeepPartial<AfslagConfig> };
-  Object.assign(base, { ...p, yields: base.yields, afslag: base.afslag });
+}
+
+/**
+ * Legt een patch op een bestaande configuratie. De geneste objecten worden
+ * samengevoegd, niet vervangen — anders zou `{ verharden: { K: 3 } }` de regel
+ * stilletjes uitzetten omdat `on` in de patch ontbreekt. Precies dat ging in de
+ * eerste opzet van de meetmatrix mis.
+ */
+function pasToe(base: GameConfig, patch: DeepPartial<GameConfig>): GameConfig {
+  const p = patch as Partial<GameConfig> & {
+    afslag?: DeepPartial<AfslagConfig>;
+    verharden?: Partial<VerhardenConfig>;
+    verzilveren?: Partial<VerzilverenConfig>;
+    oversteek?: Partial<OversteekConfig>;
+  };
+  const genest = {
+    yields: base.yields,
+    afslag: base.afslag,
+    verharden: base.verharden,
+    verzilveren: base.verzilveren,
+    oversteek: base.oversteek,
+  };
+  Object.assign(base, p, genest);
   if (p.yields) Object.assign(base.yields, p.yields);
+  if (p.verharden) Object.assign(base.verharden, p.verharden);
+  if (p.verzilveren) Object.assign(base.verzilveren, p.verzilveren);
+  if (p.oversteek) Object.assign(base.oversteek, p.oversteek);
   if (p.afslag) {
     if (p.afslag.omsingeling) Object.assign(base.afslag.omsingeling, p.afslag.omsingeling);
     if (p.afslag.stilstand) Object.assign(base.afslag.stilstand, p.afslag.stilstand);
     if (p.afslag.hongerVoorbij) Object.assign(base.afslag.hongerVoorbij, p.afslag.hongerVoorbij);
   }
   return base;
+}
+
+export function makeConfig(patch: DeepPartial<GameConfig> = {}): GameConfig {
+  return pasToe(versV5(), patch);
+}
+
+/**
+ * De meetstand van opdracht 2: de aanbevolen stand uit meting 1, plus de drie
+ * nieuwe regels aan. De drempel is hier een knop (9/11/13); 11 was het
+ * evenwichtspunt van meting 1, maar met verzilveren erbij loopt de teller
+ * anders vol — dat is precies wat er gemeten moet worden.
+ *
+ * De patch komt ná de meetstand, zodat `meeting2({ verharden: { K: 3 } })`
+ * alleen de K verandert en de regel aan laat staan.
+ */
+export function meeting2(patch: DeepPartial<GameConfig> = {}): GameConfig {
+  const basis = makeConfig({
+    acts: 3,
+    nexusMoves: 2,
+    needL: 11,
+    needN: 28,
+    spoorVreten: 'alleenTegel',
+    afslag: { omsingeling: { on: true, minRandZijden: 3, bordrandTelt: false } },
+    verharden: { on: true, K: 4 },
+    verzilveren: { on: true, M: 2 },
+    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true },
+    laatsteBot: 'beam',
+    nexusBot: 'gretig',
+  });
+  return pasToe(basis, patch);
 }
 
 export type DeepPartial<T> = {
