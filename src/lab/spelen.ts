@@ -217,7 +217,7 @@ export class Speelmodus {
     seed.oninput = () => (o.seed = Number(seed.value) || 0);
     groep.append(el('div', { class: 'regel' }, [el('label', {}, ['seed']), seed]));
 
-    const start = el('button', { class: 'knop batchknop' }, ['begin de partij']);
+    const start = el('button', { class: 'knop startknop' }, ['begin de partij']);
     start.onclick = () => this.begin();
     groep.append(start);
 

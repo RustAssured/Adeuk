@@ -283,7 +283,7 @@ button, input, select { font-family: inherit; color: inherit; }
 
 /* ---------------------------------------------------------------- batch */
 
-.batchknop { width: 100%; margin-top: 4px; }
+.batchknop, .startknop { width: 100%; margin-top: 4px; }
 .staven { display: grid; gap: 7px; margin: 10px 0 4px; }
 .staaf { display: grid; grid-template-columns: 74px 1fr 42px; gap: 8px; align-items: center; font-size: 11.5px; }
 .staaf .balk { height: 7px; background: #1b1729; border-radius: 3px; overflow: hidden; }
