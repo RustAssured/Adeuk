@@ -6,6 +6,7 @@
  */
 import type { GameConfig } from '../engine/config';
 import type { BatchMetriek } from '../engine/batch';
+import type { Meting2 } from '../engine/meting2';
 import type { GameEvent } from '../engine/types';
 
 export const el = <K extends keyof HTMLElementTagNameMap>(
@@ -288,6 +289,7 @@ export function toonBatch(
   vak: HTMLElement,
   m: BatchMetriek,
   openPotje: (seed: number) => void,
+  middenlaag?: { cijfers: Meting2; aan: boolean },
 ): void {
   const g = el('div', { class: 'groep' }, [
     el('h3', {}, ['Winstverdeling']),
@@ -350,6 +352,30 @@ export function toonBatch(
       el('span', {}, [`${laatste} b`]),
     ]),
   );
+
+  // de vragen van meetopdracht 2, als de middenlaag aan staat
+  if (middenlaag?.aan) {
+    const c = middenlaag.cijfers;
+    const extra = el('div', { class: 'kaartjes' });
+    extra.append(
+      kaart('ketens verhard', `${c.verhardPct.toFixed(0)}%`),
+      kaart('per partij', `${c.ketensVerhard.toFixed(1)} / ${c.ketensGebroken.toFixed(1)}`),
+      kaart('punten los', `${c.losPct.toFixed(0)}%`),
+      kaart('punten uit ketens', `${(100 - c.losPct).toFixed(0)}%`),
+      kaart('hij wint via de route', `${c.blokkadePct.toFixed(0)}%`),
+      kaart('dood met volle teller', `${c.klemVolPct.toFixed(0)}%`),
+      kaart('sprints < 8 b', String(c.sprints)),
+      kaart('routebreuken', c.gemRouteBreuken.toFixed(1)),
+    );
+    g.append(
+      el('h3', { style: 'margin-top:18px' }, ['De middenlaag']),
+      el('p', { class: 'bij' }, [
+        'Verhardt een keten of wordt hij op tijd gebroken? Leeft los doorgeven nog ' +
+          'naast het verzilveren? En wint hij ooit door alleen de weg naar het Oog weg te vreten?',
+      ]),
+      extra,
+    );
+  }
 
   const potjes = el('div', { class: 'potjes' });
   for (const p of m.potjes) {

@@ -207,10 +207,18 @@ function bouwBatchPaneel(): void {
         status.textContent = `bezig… ${e.data.klaar} / ${e.data.totaal}`;
       } else {
         status.textContent = `klaar — ${e.data.metriek.n} potjes met de huidige knoppen.`;
-        toonBatch(uitvoer, e.data.metriek, (seed) => {
-          speelPartij(seed);
-          kiesTab('replay');
-        });
+        toonBatch(
+          uitvoer,
+          e.data.metriek,
+          (seed) => {
+            speelPartij(seed);
+            kiesTab('replay');
+          },
+          {
+            cijfers: e.data.middenlaag,
+            aan: cfg.verharden.on || cfg.verzilveren.on || cfg.oversteek.on,
+          },
+        );
       }
     };
     const opdracht: BatchOpdracht = { cfg: JSON.parse(JSON.stringify(cfg)), n, seedStart: 0 };

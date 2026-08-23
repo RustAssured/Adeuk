@@ -49,7 +49,14 @@ export function meet(cfg: GameConfig, n: number, seedStart = 0): Meting2 {
     const uit = g.play();
     rs.push(g.result(uit));
   }
+  return vatSamen2(rs);
+}
+
+/** Dezelfde metrieken, maar over partijen die al gespeeld zijn. */
+export function vatSamen2(rs: GameResult[]): Meting2 {
+  const n = rs.length;
   const telling: Record<Uitslag, number> = { laatste: 0, nexus: 0, niets: 0, timeout: 0 };
+  if (!n) throw new Error('vatSamen2 zonder partijen');
   let vast = 0, wissels = 0, comebacks = 0, beslist = 0, sprints = 0;
   let verhard = 0, gebroken = 0, los = 0, keten = 0, blokkade = 0, klemVol = 0, ingesloten = 0;
   let breuken = 0, sporen = 0;
@@ -108,7 +115,7 @@ export function regel(label: string, m: Meting2): string {
   const p = (x: number) => x.toFixed(0).padStart(3) + '%';
   return (
     `${label.padEnd(26)} L ${p(m.verdeling.laatste)}  N ${p(m.verdeling.nexus)}  ` +
-    `klem ${p(m.vastlopers + m.verdeling.timeout > 100 ? 100 : m.vastlopers)} | ` +
+    `klem ${p(m.vastlopers)} | ` +
     `med ${String(m.medianDuur).padStart(3)}b | ` +
     `verhard ${p(m.verhardPct)} | los ${p(m.losPct)} | ` +
     `blokk ${p(m.blokkadePct)} | dood ${p(m.klemVolPct)} | comeback ${p(m.comebackPct)} | ` +

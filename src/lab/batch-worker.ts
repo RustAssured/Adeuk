@@ -4,6 +4,7 @@
  */
 import { Game } from '../engine/game';
 import { vatSamen } from '../engine/batch';
+import { vatSamen2, type Meting2 } from '../engine/meting2';
 import type { GameConfig } from '../engine/config';
 import type { GameResult } from '../engine/types';
 
@@ -14,7 +15,7 @@ export interface BatchOpdracht {
 }
 export type BatchBericht =
   | { soort: 'voortgang'; klaar: number; totaal: number }
-  | { soort: 'klaar'; metriek: ReturnType<typeof vatSamen> };
+  | { soort: 'klaar'; metriek: ReturnType<typeof vatSamen>; middenlaag: Meting2 };
 
 self.onmessage = (e: MessageEvent<BatchOpdracht>) => {
   const { cfg, n, seedStart } = e.data;
@@ -28,6 +29,10 @@ self.onmessage = (e: MessageEvent<BatchOpdracht>) => {
       self.postMessage(bericht);
     }
   }
-  const bericht: BatchBericht = { soort: 'klaar', metriek: vatSamen(uit, cfg) };
+  const bericht: BatchBericht = {
+    soort: 'klaar',
+    metriek: vatSamen(uit, cfg),
+    middenlaag: vatSamen2(uit),
+  };
   self.postMessage(bericht);
 };
