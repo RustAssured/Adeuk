@@ -1,0 +1,52 @@
+{
+  "planeet": {
+    "bestand": "art/planeet.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "bewoond": {
+    "bestand": "art/bewoond.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "komeet": {
+    "bestand": "art/komeet.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "gat": {
+    "bestand": "art/gat.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "stil": {
+    "bestand": "art/stil.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "seat": {
+    "bestand": "art/seat.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "rug": {
+    "bestand": "art/rug.webp",
+    "maat": 512,
+    "hex": true
+  },
+  "nexus": {
+    "bestand": "art/nexus.webp",
+    "maat": 768,
+    "hex": false
+  },
+  "supernova": {
+    "bestand": "art/supernova.webp",
+    "maat": 768,
+    "hex": false
+  },
+  "oog": {
+    "bestand": "art/oog.webp",
+    "maat": 768,
+    "hex": false
+  }
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>아득 ADEUK — simulatielab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="lab" class="lab">
+      <header class="kop">
+        <div class="merk">
+          <span class="hangul">아득</span>
+          <span class="titel">ADEUK</span>
+          <span class="ondertitel">simulatielab</span>
+        </div>
+        <div class="kop-mid" id="tellers"></div>
+        <div class="kop-rechts">
+          <label class="veld">
+            <span>seed</span>
+            <input id="seed" type="number" value="0" min="0" step="1" />
+          </label>
+          <button id="opnieuw" class="knop">nieuw potje</button>
+        </div>
+      </header>
+
+      <main class="hoofd">
+        <section class="bordvak">
+          <canvas id="bord"></canvas>
+          <div class="uitslag" id="uitslag" hidden></div>
+        </section>
+
+        <aside class="paneel">
+          <nav class="tabs" id="tabs">
+            <button data-tab="replay" class="aan">replay</button>
+            <button data-tab="knoppen">knoppen</button>
+            <button data-tab="batch">batch</button>
+          </nav>
+          <div class="tabvak" id="tab-replay"></div>
+          <div class="tabvak" id="tab-knoppen" hidden></div>
+          <div class="tabvak" id="tab-batch" hidden></div>
+        </aside>
+      </main>
+
+      <footer class="transport">
+        <div class="verhaal" id="verhaal">
+          <span class="verhaal-beurt" id="verhaal-beurt"></span>
+          <span class="verhaal-tekst" id="verhaal-tekst">Het bord ligt klaar.</span>
+        </div>
+        <div class="bediening">
+          <button id="begin" class="knop rond" title="naar het begin">⏮</button>
+          <button id="terug" class="knop rond" title="een zet terug">◀</button>
+          <button id="speel" class="knop rond groot" title="afspelen">▶</button>
+          <button id="vooruit" class="knop rond" title="een zet vooruit">▶|</button>
+          <button id="eind" class="knop rond" title="naar het eind">⏭</button>
+          <label class="snelheid">
+            <span>tempo</span>
+            <input id="snelheid" type="range" min="1" max="20" value="7" />
+          </label>
+          <div class="tijdbalk">
+            <input id="scrub" type="range" min="0" max="0" value="0" />
+            <div class="tijdlabel" id="tijdlabel">0 / 0</div>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="/src/lab/main.ts"></script>
+  </body>
+</html>
