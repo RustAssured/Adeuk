@@ -27,9 +27,12 @@ beurt gelijk).
 5. **Het Oog kan worden ingesloten, en dan gebeurt er niets meer.** Ruim een
    kwart van de partijen loopt tot het beurtenplafond. Dit is de vervelendste
    vondst en hij stond niet in de opdracht.
-6. **Er is één stand die het wél doet:** K 3, M 1,5, drempel 13 — en het mooiste
-   eraan is dat de balans nauwelijks meebeweegt met hoe goed de Nexus gespeeld
-   wordt. Alleen die dode tijd moet er nog uit.
+6. **Er is een stand die het wél doet:** K 3, M 1,5, drempel 13, met twee
+   reparaties erbij — het pad mag over één gat springen, en sluit hij het Oog in
+   dan wint hij. Dat geeft 40/41, 41/44 en 42/42 tegen de drie persona's:
+   vrijwel gelijkspel, ongeacht hoe goed de Nexus gespeeld wordt. Nul sprints,
+   1,4 tot 1,8 leiderswissels, 54 tot 62% comebacks. Wat er nog uit moet is de
+   uithongering: 15 tot 20% van de partijen loopt tot het beurtenplafond.
 
 ## Wat de opdracht openliet, en wat ik ervan gemaakt heb
 
@@ -324,37 +327,50 @@ drie regels horen bij elkaar; los ingevoerd doen ze schade.
 ## Voorstel om te toetsen
 
 **K 3 · M 1,5 · drempel 13**, bovenop de aanbevolen stand van meting 1
-(3 handelingen, 2 stappen, `spoorVreten = alleenTegel`, omsingeling aan). 200
-partijen per persona:
+(3 handelingen, 2 stappen, `spoorVreten = alleenTegel`, omsingeling aan), **plus
+de twee reparaties**: het pad mag over één gat springen, en sluit hij het Oog in
+dan wint hij. 200 partijen per persona:
 
 ```
-tegen wie   zij  hij  plafond  mediaan      verhard  los  blokkade  dood  wissels  comeback  sprints
-─────────── ──── ──── ──────── ──────────── ──────── ──── ───────── ───── ──────── ───────── ───────
-de gretige  32%  39%  30%      19 b (9-80)  67%      34%  13%       10%   1,6      60%       0
-de gemengde 45%  29%  27%      17 b (8-80)  76%      36%   9%        6%   1,9      71%       0
-de defensieve 39% 31%  31%      20 b (8-80)  75%      39%  11%        7%   1,7      65%       0
+tegen wie      zij  hij  plafond  mediaan       verhard  los  blokkade  wissels  comeback  sprints
+────────────── ──── ──── ──────── ───────────── ──────── ──── ───────── ──────── ───────── ───────
+de gretige     40%  41%  20%      15 b (7-80)   73%      31%   8%       1,4      54%       1
+de gemengde    41%  44%  15%      15 b (6-80)   76%      35%   8%       1,6      62%       1
+de defensieve  42%  42%  17%      15 b (8-80)   75%      33%   3%       1,8      58%       0
 ```
 
-**Het sterkste punt is niet de balans zelf maar hoe stabiel hij is.** In meting 1
-zwaaide het evenwichtspunt van 50% naar 29% zodra de Nexus beter gespeeld werd;
-hier blijft het tussen 32 en 45% tegen 29 en 39%, over drie heel verschillende
-persona's. Dat is precies wat je wilt van een ontwerp dat aan tafel moet werken
-met spelers van ongelijke sterkte.
+Ter vergelijking, dezelfde stand zonder de twee reparaties: 32/39, 45/29 en
+39/31, met 27 tot 31% beurtenplafond.
+
+**Wat dit goed maakt.** Vrijwel gelijkspel tegen alle drie de persona's — en dat
+is het punt. In meting 1 zwaaide het evenwichtspunt van 50% naar 29% zodra de
+Nexus beter gespeeld werd; hier ligt het tussen 40 en 42 tegen 41 en 44, over
+drie heel verschillende manieren van spelen. Een ontwerp dat aan tafel moet
+werken met spelers van ongelijke sterkte heeft precies dat nodig.
 
 Langs de toetslijst uit §5, alleen wat ik kán meten:
 
-- *geen wegloper* — geen enkele persona wint meer dan twee van de vijf partijen.
-- *spanningsboog* — 60 tot 71% van de beslíste partijen wordt gewonnen door de
-  kant die halverwege achterstond, met 1,6 tot 1,9 leiderswissels per partij.
-  In meting 1 was dat 0,2 wissels.
-- *sprints gedood* — nul partijen onder de acht beurten, tegen 32% in de
-  basisstand van de opdracht.
+- *geen wegloper* — geen enkele persona wint meer dan 44%.
+- *spanningsboog* — 54 tot 62% van de beslíste partijen wordt gewonnen door de
+  kant die halverwege achterstond, met 1,4 tot 1,8 leiderswissels per partij.
+  In meting 1 was dat 0,2 wissels en 32% comebacks.
+- *sprints gedood* — nul tot één partij op tweehonderd onder de acht beurten,
+  tegen 32% in de basisstand van de opdracht.
 - *betekenisvolle beslissing* — los doorgeven levert nog altijd een derde van
-  haar punten, dus de keuze tussen "nu innen" en "doorbouwen naar een keten"
-  blijft echt.
-- *geen dode tijd* — **hier faalt het.** Ruim een kwart van de partijen loopt tot
-  het beurtenplafond, en dat is bijna altijd het ingesloten Oog. Dat is de reden
-  dat dit voorstel niet af is zonder een oplossing daarvoor.
+  haar punten, dus de keuze tussen nú innen en dóórbouwen blijft echt. En de
+  keten die haar route draagt is als draagmuur meer waard dan als munt: dat is
+  een echte afweging, geen rekensom.
+- *geen dode tijd* — **beter, maar nog niet goed.** 15 tot 20% van de partijen
+  loopt tot het beurtenplafond, en dat is nu vrijwel allemaal de uithongering:
+  zij houdt genoeg ketens hard om hem onder zijn 28 te drukken.
+
+**Wat ik hierna zou meten.** De uithongering is een rekensom, dus hij is met een
+rekensom te verhelpen: zijn drempel omlaag zodat er speling zit tussen wat zij
+kan wegzetten en wat hij nodig heeft. 13 + 25 = 38 en 13 + 27 = 40 blijven
+allebei boven de 36 die §1 eist. Eerste meting op 25 laat het plafond zakken van
+20% naar 8%, maar duwt de partij naar hem toe (39/54). Ergens tussen 26 en 28
+ligt de stand waar allebei klopt; dat is de laatste knop die nog gedraaid moet
+worden.
 
 ---
 
