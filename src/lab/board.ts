@@ -41,7 +41,33 @@ export interface BordStand {
   wie: 'laatste' | 'nexus' | 'systeem';
   /** hex waar de muis boven hangt, of -1 */
   hover: number;
+  /** de zetten die nu open liggen, in de speelbare modus */
+  keuzes?: Keuze[];
+  /** de tegels van de zet die op dit moment aandacht heeft */
+  gloed?: number[];
 }
+
+/**
+ * Een aanklikbare zet, zoals het bord hem moet laten zien. De kleur volgt de
+ * kant: goud is van haar, aantrekkingspaars van hem.
+ */
+export interface Keuze {
+  cel: number;
+  soort:
+    | 'reiken' | 'doorgeven' | 'verzilveren' | 'terugtrekken'
+    | 'stap' | 'verzwelgen' | 'stilstand' | 'hongerVoorbij';
+}
+
+const KEUZEKLEUR: Record<Keuze['soort'], string> = {
+  reiken: KLEUR.goud,
+  doorgeven: KLEUR.goudLicht,
+  verzilveren: '#ffe6a8',
+  terugtrekken: KLEUR.substantie,
+  stap: KLEUR.aantrekking,
+  verzwelgen: KLEUR.aantrekking,
+  stilstand: '#c9b6f0',
+  hongerVoorbij: '#c9b6f0',
+};
 
 export class Bord {
   private ctx: CanvasRenderingContext2D;
@@ -90,6 +116,11 @@ export class Bord {
       }
     }
     return best;
+  }
+
+  /** Waar hex `i` op het scherm ligt, in css-pixels binnen het canvas. */
+  plekVan(i: number): { x: number; y: number } {
+    return this.plek(i);
   }
 
   private plek(i: number): { x: number; y: number } {
@@ -144,6 +175,9 @@ export class Bord {
       this.tekenMarkering(this.plek(i), wie, tijd);
     }
 
+    // ---- 7b. wat er nu te kiezen valt
+    if (stand.keuzes?.length) this.tekenKeuzes(stand.keuzes, stand.gloed ?? [], tijd);
+
     // ---- 8. muisaanwijzing
     if (hover >= 0 && hover < ALL.length) {
       const p = this.plek(hover);
@@ -154,6 +188,47 @@ export class Bord {
       ctx.stroke();
       ctx.restore();
     }
+  }
+
+  /**
+   * De open zetten. Een dunne, ademende ring in de kleur van de kant, en een
+   * vollere ring om wat op dit moment aandacht heeft. Bewust terughoudend: het
+   * bord moet leesbaar blijven als er twintig zetten open liggen.
+   */
+  private tekenKeuzes(keuzes: Keuze[], gloed: number[], tijd: number): void {
+    const { ctx } = this;
+    const puls = 0.5 + 0.5 * Math.sin(tijd / 620);
+    const aandacht = new Set(gloed);
+    ctx.save();
+    for (const k of keuzes) {
+      if (k.cel < 0 || k.cel >= ALL.length) continue;
+      const p = this.plek(k.cel);
+      const kleur = KEUZEKLEUR[k.soort];
+      const sterk = aandacht.has(k.cel);
+
+      // een wash over de tegel, zodat het van een afstand opvalt
+      ctx.globalAlpha = sterk ? 0.2 : 0.07 + 0.035 * puls;
+      ctx.fillStyle = kleur;
+      this.pad(p, this.size * 0.9);
+      ctx.fill();
+
+      ctx.globalAlpha = sterk ? 1 : 0.5 + 0.22 * puls;
+      ctx.strokeStyle = kleur;
+      ctx.lineWidth = sterk ? 2.6 : 1.8;
+      ctx.shadowColor = kleur;
+      ctx.shadowBlur = sterk ? 18 : 8;
+      this.pad(p, this.size * (sterk ? 0.9 : 0.86));
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // en een stip in het midden: hier kun je klikken
+      ctx.globalAlpha = sterk ? 1 : 0.6 + 0.2 * puls;
+      ctx.fillStyle = kleur;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, sterk ? 4 : 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   /** Een zachte ring achter het bord: geeft de hexen een vlak om op te liggen. */

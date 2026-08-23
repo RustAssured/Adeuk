@@ -15,6 +15,7 @@ import {
   bewaarAlsVergelijking, laadVergelijking, neemKnoppenOver, toonAdvies, wisVergelijking,
   type Batchstand,
 } from './advies-paneel';
+import { Speelmodus } from './spelen';
 import type { BatchBericht, BatchOpdracht } from './batch-worker';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -41,6 +42,7 @@ let hover = -1;
 let bord: Bord;
 let ververs: (huidig: number) => void = () => {};
 let ververKnoppen: () => void = () => {};
+let spel: Speelmodus | null = null;
 
 // ------------------------------------------------------------------ partij
 
@@ -157,6 +159,27 @@ function tekenUitslag(ev: GameEvent): void {
 // -------------------------------------------------------------- tekenlus
 
 function lus(t: number): void {
+  if (spel?.actief) {
+    const f = spel.frame(t);
+    if (f) {
+      bord.teken(
+        {
+          snap: f.snap,
+          tiles: f.tiles,
+          seat: f.seat,
+          route: routeUitSnapshot(f.snap, f.seat),
+          markeer: f.markeer,
+          wie: f.wie,
+          hover,
+          keuzes: f.keuzes,
+          gloed: f.gloed,
+        },
+        t,
+      );
+    }
+    requestAnimationFrame(lus);
+    return;
+  }
   if (speelt && partij) {
     const perSec = Number(($('snelheid') as HTMLInputElement).value);
     if (t - laatsteTik > 1000 / perSec) {
@@ -304,7 +327,7 @@ function kiesTab(naam: string): void {
   for (const b of $('tabs').querySelectorAll('button')) {
     b.classList.toggle('aan', b.dataset.tab === naam);
   }
-  for (const n of ['replay', 'knoppen', 'batch', 'advies']) {
+  for (const n of ['replay', 'knoppen', 'spelen', 'batch', 'advies']) {
     $(`tab-${n}`).hidden = n !== naam;
   }
 }
@@ -326,6 +349,29 @@ async function start(): Promise<void> {
     if (partij) speelPartij(partij.seed);
   });
   bouwBatchPaneel();
+
+  spel = new Speelmodus($('tab-spelen'), cfg, {
+    tellers: tekenTellers,
+    verhaal: (tekst, wie, beurt) => {
+      const t = $('verhaal-tekst');
+      t.textContent = tekst;
+      t.className = 'verhaal-tekst ' + (wie === 'laatste' ? 'zij' : wie);
+      $('verhaal-beurt').textContent = beurt > 0 ? `beurt ${beurt}` : 'opzet';
+    },
+    uitslag: (tekst, klasse) => {
+      const vak = $('uitslag');
+      if (tekst === null) {
+        vak.hidden = true;
+        return;
+      }
+      vak.className = `uitslag ${klasse}`;
+      vak.textContent = tekst;
+      vak.hidden = false;
+    },
+    tempo: () => Number(($('snelheid') as HTMLInputElement).value),
+    logboek: (vak, events, spring) => bouwZetlijst(vak, events, spring),
+    plek: (i) => bord.plekVan(i),
+  }, $('bordvak'));
 
   // knoppen bovenin
   $('opnieuw').onclick = () => speelPartij(Number(($('seed') as HTMLInputElement).value) || 0);
@@ -361,14 +407,33 @@ async function start(): Promise<void> {
     b.onclick = () => kiesTab(b.dataset.tab!);
   }
 
+  const tip = $('tegeltip');
   canvas.onmousemove = (e) => {
     const r = canvas.getBoundingClientRect();
     hover = bord.raak(e.clientX - r.left, e.clientY - r.top);
+    spel?.wijs(hover);
+    const tekst = spel?.actief ? spel.tip(hover) : '';
+    if (tekst) {
+      tip.textContent = tekst;
+      tip.style.left = `${e.clientX - r.left}px`;
+      tip.style.top = `${e.clientY - r.top}px`;
+      tip.hidden = false;
+    } else {
+      tip.hidden = true;
+    }
   };
-  canvas.onmouseleave = () => (hover = -1);
+  canvas.onmouseleave = () => {
+    hover = -1;
+    spel?.wijs(-1);
+    tip.hidden = true;
+  };
+  canvas.onclick = () => {
+    if (spel?.actief && hover >= 0) spel.klik(hover);
+  };
 
   window.addEventListener('keydown', (e) => {
     if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
+    if (spel?.toets(e)) return;
     if (e.key === 'ArrowRight') { speelt = false; knopSpeel(); ga(i + 1); }
     else if (e.key === 'ArrowLeft') { speelt = false; knopSpeel(); ga(i - 1); }
     else if (e.key === ' ') { e.preventDefault(); $('speel').click(); }

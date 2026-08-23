@@ -30,8 +30,9 @@
       </header>
 
       <main class="hoofd">
-        <section class="bordvak">
+        <section class="bordvak" id="bordvak">
           <canvas id="bord"></canvas>
+          <div class="tegeltip" id="tegeltip" hidden></div>
           <div class="uitslag" id="uitslag" hidden></div>
         </section>
 
@@ -39,11 +40,13 @@
           <nav class="tabs" id="tabs">
             <button data-tab="replay" class="aan">replay</button>
             <button data-tab="knoppen">knoppen</button>
+            <button data-tab="spelen">spelen</button>
             <button data-tab="batch">batch</button>
             <button data-tab="advies">advies<i class="tab-stip" id="tab-stip" hidden></i></button>
           </nav>
           <div class="tabvak" id="tab-replay"></div>
           <div class="tabvak" id="tab-knoppen" hidden></div>
+          <div class="tabvak" id="tab-spelen" hidden></div>
           <div class="tabvak" id="tab-batch" hidden></div>
           <div class="tabvak" id="tab-advies" hidden></div>
         </aside>

@@ -536,3 +536,139 @@ input[type='range']::-moz-range-thumb {
 .o-kop { flex-wrap: wrap; row-gap: 5px; }
 .o-naam { flex: 1 1 auto; min-width: 120px; }
 .o-merk { font-size: 8.5px; letter-spacing: 0.1em; padding: 2px 6px; }
+
+/* -------------------------------------------------------------- spelen */
+
+.regel.staand { display: block; }
+.regel.staand > label { display: block; margin-bottom: 7px; }
+.keuzerij { display: flex; flex-wrap: wrap; gap: 6px; }
+.knop.keuze { padding: 6px 11px; font-size: 11.5px; border-radius: 6px; }
+.knop.stil { color: var(--inkt-zacht); }
+.bij.klein { font-size: 11px; margin-top: 6px; color: var(--inkt-zacht); }
+
+/* wie er aan zet is */
+.aanzet {
+  position: relative;
+  padding: 14px 15px 13px;
+  border: 1px solid var(--lijn);
+  border-left: 2px solid var(--lijn);
+  border-radius: 8px;
+  background: var(--nacht-op);
+  margin-bottom: 12px;
+}
+.aanzet.zij { border-left-color: var(--goud); }
+.aanzet.hij { border-left-color: var(--aantrekking); }
+.az-beurt {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--inkt-zacht);
+}
+.az-wie { font-family: var(--serif); font-size: 22px; margin-top: 2px; }
+.aanzet.zij .az-wie { color: var(--goud-zacht); }
+.aanzet.hij .az-wie { color: #c9b6f0; }
+.az-wat { font-size: 12px; color: var(--inkt-zacht); margin-top: 1px; }
+
+.handelingen { display: flex; gap: 5px; margin-top: 11px; }
+.handelingen i {
+  flex: 1; height: 4px; border-radius: 999px;
+  background: currentColor; opacity: 0.9;
+}
+.aanzet.zij .handelingen i { color: var(--goud); }
+.aanzet.hij .handelingen i { color: var(--aantrekking); }
+.handelingen i.op { opacity: 0.16; }
+.az-telling {
+  margin-top: 6px; font-family: var(--mono); font-size: 10.5px; color: var(--inkt-zacht);
+}
+
+/* de open zetten, gegroepeerd */
+.zetkeuzes { display: grid; gap: 6px; margin-bottom: 12px; }
+.zetgroep {
+  padding: 8px 11px; border-radius: 7px; cursor: default;
+  border: 1px solid var(--lijn); border-left: 2px solid var(--lijn);
+  background: #100c1c;
+  transition: background 0.12s ease;
+}
+.zetgroep:hover { background: #191330; }
+.zetgroep.reiken, .zetgroep.doorgeven { border-left-color: var(--goud); }
+.zetgroep.verzilveren { border-left-color: #ffe6a8; }
+.zetgroep.terugtrekken { border-left-color: var(--substantie); }
+.zetgroep.stap, .zetgroep.verzwelgen,
+.zetgroep.stilstand, .zetgroep.hongerVoorbij { border-left-color: var(--aantrekking); }
+.zg-kop {
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--inkt-zacht);
+}
+.zg-uitleg { font-size: 12px; margin-top: 3px; }
+
+.speelknoppen { display: flex; gap: 7px; flex-wrap: wrap; }
+.speelknoppen .knop[disabled] { opacity: 0.34; pointer-events: none; }
+
+.speellog { margin-top: 4px; }
+.speellog .zetlijst { max-height: 42vh; overflow: auto; }
+
+/* het menu bij een tegel waar meer dan één zet op ligt */
+.keuzemenu {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: grid; gap: 5px;
+  padding: 10px;
+  min-width: 210px;
+  border: 1px solid var(--lijn); border-radius: 9px;
+  background: rgba(10, 8, 18, 0.95);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 40px -18px #000;
+}
+.km-kop {
+  font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--inkt-zacht); margin-bottom: 2px;
+}
+.km-zet { text-align: left; font-size: 11.5px; padding: 7px 10px; line-height: 1.4; }
+.km-zet.verzilveren { border-color: #6a5a34; color: #ffe6a8; }
+.km-zet.stilstand { border-color: #4a3f6b; color: #c9b6f0; }
+
+/* de tooltip die vertelt waarom iets niet kan */
+.tegeltip {
+  position: absolute; z-index: 4; pointer-events: none;
+  transform: translate(14px, 14px);
+  max-width: 300px;
+  padding: 6px 10px;
+  border: 1px solid var(--lijn); border-radius: 6px;
+  background: rgba(10, 8, 18, 0.94);
+  font-size: 11.5px; line-height: 1.45; color: var(--inkt);
+}
+
+/* het slotscherm */
+.eindkaart {
+  padding: 16px 16px 14px; margin-bottom: 12px;
+  border: 1px solid var(--lijn); border-left: 3px solid var(--lijn);
+  border-radius: 9px; background: var(--nacht-op);
+}
+.eindkaart.zij { border-left-color: var(--goud); }
+.eindkaart.hij { border-left-color: var(--aantrekking); }
+.ek-woord { font-family: var(--serif); font-size: 25px; line-height: 1.15; }
+.eindkaart.zij .ek-woord { color: var(--goud-zacht); }
+.eindkaart.hij .ek-woord { color: #c9b6f0; }
+.ek-cijfers {
+  margin-top: 7px; font-family: var(--mono); font-size: 10.5px; color: var(--inkt-zacht);
+}
+.ek-duiding { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; opacity: 0.9; }
+
+/* [hidden] verliest het van een klasse met display, dus expliciet */
+.keuzemenu[hidden] { display: none; }
+.zetgroep.enkel { cursor: pointer; }
+.zetgroep.enkel:hover { border-color: var(--goud); }
+
+/* vijf tabs op één regel: kleiner en zonder spatiëring die ruimte vreet */
+.tabs { flex-wrap: nowrap; }
+.tabs button {
+  padding: 11px 3px; font-size: 10px; letter-spacing: 0.1em; min-width: 0;
+}
+
+/* tijdens een gespeelde partij is de replay-bediening niet van toepassing */
+.lab.speelt .bediening .knop.rond,
+.lab.speelt .tijdbalk { display: none; }
+.lab.speelt .bediening::after {
+  content: 'spatie: beurt af   ·   z: terug';
+  font-family: var(--mono); font-size: 10.5px; color: var(--inkt-zacht);
+  letter-spacing: 0.06em;
+}
