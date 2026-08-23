@@ -313,6 +313,31 @@ describe('twee kandidaat-reparaties voor het ingesloten Oog', () => {
 });
 
 describe('pariteit blijft', () => {
+  it('valt met de middenlaag uit terug op de aanbevolen stand van meting 1', () => {
+    const zonder = meeting2({
+      verharden: { on: false },
+      verzilveren: { on: false },
+      oversteek: { on: false },
+    });
+    // dit is precies het voorstel uit docs/BEVINDINGEN.md
+    expect({
+      acts: zonder.acts,
+      nexusMoves: zonder.nexusMoves,
+      needN: zonder.needN,
+      spoorVreten: zonder.spoorVreten,
+      omsingeling: zonder.afslag.omsingeling,
+    }).toEqual({
+      acts: 3,
+      nexusMoves: 2,
+      needN: 28,
+      spoorVreten: 'alleenTegel',
+      omsingeling: { on: true, minRandZijden: 3, bordrandTelt: false },
+    });
+    const g = new Game(0, zonder);
+    expect(g.oog).toBeNull();
+    expect(g.ketens.size).toBe(0);
+  });
+
   it('staat de middenlaag standaard uit', () => {
     const v5 = makeConfig();
     expect(v5.verharden.on).toBe(false);

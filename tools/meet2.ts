@@ -6,6 +6,8 @@
  *   npm run meet2 -- ablatie [n]    elk van de drie regels apart uit
  *   npm run meet2 -- stand [n]      één stand, alle cijfers
  *   npm run meet2 -- oog [n]        het ingesloten Oog: twee kandidaat-reparaties
+ *   npm run meet2 -- beste [n] [K] [M] [drempel] [hof] [einde]
+ *                                   één stand tegen alle drie de persona's
  */
 import { meeting2, type DeepPartial, type GameConfig } from '../src/engine/config';
 import { meet, regel, type Meting2 } from '../src/engine/meting2';
@@ -94,6 +96,37 @@ if (cmd === 'stand') {
   ];
   for (const [label, patch] of varianten) {
     console.log(regel(label, meet(meeting2({ ...patch, nexusBot: 'gemengd' }), N)));
+  }
+} else if (cmd === 'beste') {
+  const K = Number(process.argv[4] ?? 4);
+  const M = Number(process.argv[5] ?? 2);
+  const drempel = Number(process.argv[6] ?? 11);
+  const hof = process.argv[7] === 'hof';
+  const einde = process.argv[8] === 'einde';
+  kop(
+    `K${K} M${M} drempel ${drempel}${hof ? ' + hof' : ''}${einde ? ' + onbereikbaar eindigt' : ''}` +
+      ` — ${N} seeds, tegen alle drie de persona's`,
+  );
+  for (const nx of ['gretig', 'gemengd', 'defensief'] as const) {
+    const m = meet(
+      meeting2({
+        verharden: { K },
+        verzilveren: { M },
+        needL: drempel,
+        oversteek: { hof, onbereikbaarEindigt: einde },
+        nexusBot: nx,
+      }),
+      N,
+    );
+    console.log(
+      `${nx.padEnd(12)} L ${p(m.verdeling.laatste)} N ${p(m.verdeling.nexus)} ` +
+        `niets ${p(m.verdeling.niets)} plafond ${p(m.verdeling.timeout)} | ` +
+        `med ${String(m.medianDuur).padStart(4)}b (${m.minDuur}-${m.maxDuur}) | ` +
+        `verhard ${p(m.verhardPct)} | los ${p(m.losPct)} | ` +
+        `blok ${p(m.blokkadePct)} | dood ${p(m.klemVolPct)} | ` +
+        `wissels ${m.gemWissels.toFixed(1)} | comeback ${p(m.comebackPct)} | ` +
+        `sprints ${String(m.sprints).padStart(3)}`,
+    );
   }
 } else if (cmd === 'oog') {
   kop(`Het ingesloten Oog — ${N} seeds, tegen de gemengde Nexus`);

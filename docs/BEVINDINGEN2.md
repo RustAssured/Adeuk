@@ -61,3 +61,34 @@ nieuws vertellen. Opgesplitst in drie sneden:
 - **de beste stand uit de matrix** nog eens tegen alle drie de persona's, want in
   meting 1 bleek het evenwichtspunt daarmee mee te schuiven.
 
+## Beleefbaarheid — de drie momenten in het lab
+
+Punt 4 van de opdracht: de drie nieuwe momenten moeten zichtbaar en voelbaar
+zijn in de replay. Wat er nu staat:
+
+- **Verharden.** Tegels van dezelfde keten worden aan elkaar gelast getekend:
+  dikke gouden verbindingen tussen de hexen, een dichte rand eromheen, en de
+  gloed staat stil in plaats van te ademen. Een verharde keten leest daardoor
+  als één gelast bouwwerk en niet als vier losse tegels — precies het verschil
+  dat aan tafel telt. In het logboek: *"Keten van 4 verhardt — onaantastbaar, en
+  af: hier kan niets meer bij."*
+- **Verzilveren.** *"De Laatste verzilvert een keten van 4 in één handeling —
+  +8 op haar teller (11 van 11), 8 substantie keert terug. De sporen zijn nu
+  gewoon spoor."* De lassen verdwijnen op datzelfde moment van het bord; je ziet
+  het bouwwerk uit elkaar vallen tot losse merktekens.
+- **De route.** Het pad van de Zetel naar het Oog loopt als een bewegende
+  stippellijn over het bord, met een brede zachte gloed eronder. Breekt hij, dan
+  staat er *"De weg naar het Oog is verbroken"* in het paars van de Nexus, en de
+  teller bovenin slaat om naar het aantal tegels dat ze nog moet innemen — of
+  naar *"het Oog is ingesloten"* als er helemaal geen weg meer is.
+
+Het Oog heeft een eigen artwork-slot (`public/art/oogtegel.webp`). Zolang het
+definitieve artwork er niet is wordt `Oog.png` gebruikt, met het oog-motief van
+de kaartrug er in goud overheen getekend, zodat de tegel onmiskenbaar is.
+
+De drie momenten zijn in het zettenlogboek uitgelicht — goud voor haar
+mijlpalen, paars voor de zijne — zodat je ze in een lange partij niet
+overslaat. Alle knoppen (K, M, drempel, afstand van het Oog, en de twee
+kandidaat-reparaties hieronder) staan live in het paneel, en de batch-modus
+toont dezelfde cijfers als de meetbank.
+
