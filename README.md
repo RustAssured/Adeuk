@@ -19,7 +19,7 @@ npm run dev      # het lab op http://localhost:5173
 ```
 
 ```bash
-npm test         # 69 tests: pariteit met v5.py, regel-invarianten, botgedrag, middenlaag
+npm test         # 73 tests: pariteit met v5.py, regel-invarianten, botgedrag, middenlaag
 npm run build    # productiebundel in dist/
 ```
 
@@ -44,7 +44,9 @@ npm run meet2 -- stand 200         # de meetstand, tegen alle drie de Nexus-pers
 npm run meet2 -- matrix 150        # K x M x drempel
 npm run meet2 -- ablatie 150       # elk van de drie regels apart uit
 npm run meet2 -- personas 150      # beide bots tegen alle persona's
-npm run meet2 -- oog 150           # het ingesloten Oog en twee kandidaat-reparaties
+npm run meet2 -- oog 150           # het ingesloten Oog en de kandidaat-reparaties
+npm run meet2 -- beste 200 3 1.5 13 - nexusWint 1
+                                   # het voorstel, tegen alle drie de persona's
 
 # meting 1 — de v5-regels en de afsla-opties
 npm run bench -- solo 500          # de solo-batterij uit §4

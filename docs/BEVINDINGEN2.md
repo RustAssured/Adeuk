@@ -364,13 +364,31 @@ Langs de toetslijst uit §5, alleen wat ik kán meten:
   loopt tot het beurtenplafond, en dat is nu vrijwel allemaal de uithongering:
   zij houdt genoeg ketens hard om hem onder zijn 28 te drukken.
 
-**Wat ik hierna zou meten.** De uithongering is een rekensom, dus hij is met een
-rekensom te verhelpen: zijn drempel omlaag zodat er speling zit tussen wat zij
-kan wegzetten en wat hij nodig heeft. 13 + 25 = 38 en 13 + 27 = 40 blijven
-allebei boven de 36 die §1 eist. Eerste meting op 25 laat het plafond zakken van
-20% naar 8%, maar duwt de partij naar hem toe (39/54). Ergens tussen 26 en 28
-ligt de stand waar allebei klopt; dat is de laatste knop die nog gedraaid moet
-worden.
+**Wat ik hierna zou meten — en wat het níet is.** De voor de hand liggende
+gedachte is: zijn drempel omlaag, dan heeft hij speling. Dat is gemeten en het
+werkt niet. Elke stap omlaag verschuift de partij naar hem zonder het plafond
+echt op te lossen:
+
+```
+zijn drempel  gretig   gemengd  defensief  plafond
+────────────  ───────  ───────  ─────────  ───────
+28            40 / 41  41 / 44  42 / 42    15-20%
+27            40 / 43  40 / 53             7-17%
+25            39 / 54  39 / 53  39 / 48     8-14%
+24            38 / 56                          7%
+```
+
+De uithongering zit niet in zijn drempel maar in het mechanisme: **een verharde
+keten is permanent van zijn menu af, en zij heeft er alle belang bij om de keten
+die haar route draagt níet te verzilveren.** Dat is precies de afweging die de
+regel zo aardig maakt, en tegelijk de bron van de patstelling.
+
+De richting die ik zou onderzoeken is dus niet zijn teller maar het vasthouden
+zelf: laat het iets kosten om een keten hard te houden. Bijvoorbeeld — en dit is
+een voorstel om te méten, niet om aan te nemen — dat een verharde keten die na n
+beurten nog niet verzilverd is de draad niet langer draagt, of dat de omsingeling
+er alsnog vat op krijgt zodra hij hem volledig heeft ingesloten. Dan blijft het
+haar keuze, maar is "eeuwig verschansen" geen gratis optie meer.
 
 ---
 
