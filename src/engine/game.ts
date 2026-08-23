@@ -893,22 +893,25 @@ export class Game {
     if (this.done) return;
     this.hist.push([this.pileL, this.pileN]);
     if (this.alive.size <= 1) this.done = 'niets';
-    // is er geen weg meer naar het Oog, dan is er niets meer te spelen
+    // is er geen weg meer naar het Oog, dan is er niets meer voor haar te halen
     if (
       !this.done &&
       this.cfg.oversteek.on &&
-      this.cfg.oversteek.onbereikbaarEindigt &&
+      this.cfg.oversteek.onbereikbaar !== 'doorspelen' &&
       !Number.isFinite(this.routeTekort())
     ) {
+      const nexusWint = this.cfg.oversteek.onbereikbaar === 'nexusWint';
       if (this.trace) {
         this.emit(
           'route-dicht',
           'nexus',
           this.oog ? [IDX.get(this.oog)!] : [],
-          `Het Oog is ingesloten. Er is geen weg meer; het universum eindigde.`,
+          nexusWint
+            ? `Het Oog is ingesloten. Het universum sloot zich om haar heen — de Nexus wint.`
+            : `Het Oog is ingesloten. Er is geen weg meer; het universum eindigde.`,
         );
       }
-      this.done = 'niets';
+      this.done = nexusWint ? 'nexus' : 'niets';
     }
     this.noteerVerandering();
   }

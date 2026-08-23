@@ -79,7 +79,18 @@ export interface OversteekConfig {
    * gaat eerst over de regel zoals hij is opgeschreven.
    */
   hof: boolean;
-  onbereikbaarEindigt: boolean;
+  /**
+   * Wat er gebeurt zodra er geen weg meer naar het Oog is.
+   *   doorspelen — niets bijzonders; de partij loopt door tot het plafond.
+   *                Dat is de regel zoals hij is opgeschreven, en de bron van
+   *                alle dode tijd.
+   *   niets       — het universum eindigt, niemand wint.
+   *   nexusWint   — hij wint meteen: het universum sloot zich om haar heen.
+   *                Dat maakt insluiten een expliciete winst in plaats van een
+   *                patstelling, en geeft hem een tweede weg naar de overwinning
+   *                naast zijn tegelteller.
+   */
+  onbereikbaar: 'doorspelen' | 'niets' | 'nexusWint';
   /**
    * Derde kandidaat: het pad mag over de rand heen, net zoals reiken dat al mag
    * (§2, "Reiken door de rand"). Over n aaneengesloten verdwenen tegels blijft
@@ -160,7 +171,7 @@ export const V5_CONFIG: GameConfig = {
   spoorVreten: 'alles',
   verharden: { on: false, K: 4 },
   verzilveren: { on: false, M: 2 },
-  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false, maxSprong: 0 },
+  oversteek: { on: false, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaar: 'doorspelen', maxSprong: 0 },
   afslag: {
     omsingeling: { on: false, minRandZijden: 3, bordrandTelt: false },
     stilstand: { on: false },
@@ -243,7 +254,7 @@ export function meeting2(patch: DeepPartial<GameConfig> = {}): GameConfig {
     afslag: { omsingeling: { on: true, minRandZijden: 3, bordrandTelt: false } },
     verharden: { on: true, K: 4 },
     verzilveren: { on: true, M: 2 },
-    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaarEindigt: false, maxSprong: 0 },
+    oversteek: { on: true, afstand: 4, oogMoetVanHaarZijn: true, hof: false, onbereikbaar: 'doorspelen', maxSprong: 0 },
     laatsteBot: 'beam',
     nexusBot: 'gretig',
   });

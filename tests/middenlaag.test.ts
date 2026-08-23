@@ -297,11 +297,18 @@ describe('twee kandidaat-reparaties voor het ingesloten Oog', () => {
     expect(Number.isFinite(g.routeTekort())).toBe(true);
   });
 
-  it('onbereikbaar eindigt: geen weg meer betekent geen partij meer', () => {
-    const g = opzet(21, { oversteek: { onbereikbaarEindigt: true }, needL: 1 });
+  it('onbereikbaar = niets: geen weg meer betekent geen partij meer', () => {
+    const g = opzet(21, { oversteek: { onbereikbaar: 'niets' }, needL: 1 });
     for (const b of g.nbKeys(g.oog!)) g.alive.delete(b);
     g.playTurn();
     expect(g.done).toBe('niets');
+  });
+
+  it('onbereikbaar = hij wint: insluiten is dan zijn tweede weg naar de winst', () => {
+    const g = opzet(21, { oversteek: { onbereikbaar: 'nexusWint' }, needL: 1 });
+    for (const b of g.nbKeys(g.oog!)) g.alive.delete(b);
+    g.playTurn();
+    expect(g.done).toBe('nexus');
   });
 
   it('laat de partij zonder die knop gewoon doorlopen', () => {

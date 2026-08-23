@@ -104,7 +104,8 @@ const GROEPEN: Array<{ titel: string; bij: string; knoppen: Knop[] }> = [
       { soort: 'getal', pad: 'oversteek.afstand', label: '— afstand Oog tot Zetel', min: 2, max: 6 },
       { soort: 'vink', pad: 'oversteek.oogMoetVanHaarZijn', label: '— het Oog zelf moet van haar zijn', bij: 'uit: een pad tot náást het Oog volstaat' },
       { soort: 'vink', pad: 'oversteek.hof', label: '— hof: de buren van het Oog zijn ook onverzwelgbaar', bij: 'niet in de opdracht; hiermee kan hij het Oog niet volledig insluiten' },
-      { soort: 'vink', pad: 'oversteek.onbereikbaarEindigt', label: '— onbereikbaar Oog beëindigt de partij', bij: 'niet in de opdracht; haalt de dode beurten eruit als er geen weg meer is' },
+      { soort: 'keuze', pad: 'oversteek.onbereikbaar', label: '— als het Oog onbereikbaar wordt', bij: 'doorspelen = de regel zoals opgeschreven, en de bron van alle dode tijd · niets = het universum eindigt · nexusWint = het universum sloot zich om haar heen', opties: ['doorspelen', 'niets', 'nexusWint'] },
+      { soort: 'getal', pad: 'oversteek.maxSprong', label: '— pad mag over n gaten springen', bij: 'zoals reiken over de rand mag (§2); 0 zet het uit', min: 0, max: 4 },
     ],
   },
   {

@@ -6,7 +6,7 @@
  *   npm run meet2 -- ablatie [n]    elk van de drie regels apart uit
  *   npm run meet2 -- stand [n]      één stand, alle cijfers
  *   npm run meet2 -- oog [n]        het ingesloten Oog: twee kandidaat-reparaties
- *   npm run meet2 -- beste [n] [K] [M] [drempel] [hof] [einde]
+ *   npm run meet2 -- beste [n] [K] [M] [drempel] [hof] [onbereikbaar] [sprong] [needN]
  *                                   één stand tegen alle drie de persona's
  */
 import { meeting2, type DeepPartial, type GameConfig } from '../src/engine/config';
@@ -102,11 +102,12 @@ if (cmd === 'stand') {
   const M = Number(process.argv[5] ?? 2);
   const drempel = Number(process.argv[6] ?? 11);
   const hof = process.argv[7] === 'hof';
-  const einde = process.argv[8] === 'einde';
+  const einde = process.argv[8]; // 'niets' | 'nexusWint' | anders doorspelen
   const sprong = Number(process.argv[9] ?? 0);
+  const needN = Number(process.argv[10] ?? 28);
   kop(
-    `K${K} M${M} drempel ${drempel}${hof ? ' + hof' : ''}${einde ? ' + onbereikbaar eindigt' : ''}` +
-      `${sprong ? ` + pad springt ${sprong}` : ''}` +
+    `K${K} M${M} drempel ${drempel}${hof ? ' + hof' : ''}${einde === 'niets' || einde === 'nexusWint' ? ` + onbereikbaar: ${einde}` : ''}` +
+      `${sprong ? ` + pad springt ${sprong}` : ''}${needN !== 28 ? ` + hij hoeft ${needN}` : ''}` +
       ` — ${N} seeds, tegen alle drie de persona's`,
   );
   for (const nx of ['gretig', 'gemengd', 'defensief'] as const) {
@@ -115,7 +116,12 @@ if (cmd === 'stand') {
         verharden: { K },
         verzilveren: { M },
         needL: drempel,
-        oversteek: { hof, onbereikbaarEindigt: einde, maxSprong: sprong },
+        needN,
+        oversteek: {
+          hof,
+          onbereikbaar: einde === 'niets' || einde === 'nexusWint' ? einde : 'doorspelen',
+          maxSprong: sprong,
+        },
         nexusBot: nx,
       }),
       N,
@@ -135,8 +141,8 @@ if (cmd === 'stand') {
   const varianten: Array<[string, DeepPartial<GameConfig>]> = [
     ['zoals opgeschreven', {}],
     ['+ hof rond het Oog', { oversteek: { hof: true } }],
-    ['+ onbereikbaar eindigt', { oversteek: { onbereikbaarEindigt: true } }],
-    ['+ allebei', { oversteek: { hof: true, onbereikbaarEindigt: true } }],
+    ['+ onbereikbaar = niets', { oversteek: { onbereikbaar: 'niets' } }],
+    ['+ onbereikbaar = hij wint', { oversteek: { onbereikbaar: 'nexusWint' } }],
     ['+ pad mag 1 gat over', { oversteek: { maxSprong: 1 } }],
     ['+ pad mag 2 gaten over', { oversteek: { maxSprong: 2 } }],
     ['pad tot náást het Oog', { oversteek: { oogMoetVanHaarZijn: false } }],

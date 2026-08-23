@@ -189,63 +189,91 @@ verdwijnt élke rem — maar hij lost het niet op. Wat het wél oplost is de
 combinatie **lagere M** en **hogere drempel**: bij M = 1,5 met drempel 13 zijn er
 in geen enkele K-variant nog sprints.
 
-### B · Het Oog raakt ingesloten, en dan gebeurt er niets meer
+### B · Twee spiegelbeeldige patstellingen
 
-Dit is de vervelendste vondst, en hij zat niet in de opdracht.
+Dit is de vervelendste vondst, en hij stond niet in de opdracht. Er zijn er
+bovendien twee, en ze zijn elkaars spiegelbeeld.
 
-Het Oog is onverzwelgbaar, maar zijn **buren niet**. Hij hoeft geen weg te
-blokkeren — hij eet er gewoon een ring omheen. Gemeten over 400 partijen heeft
-het Oog bij de opzet in 20% van de gevallen maar drie buren op het bord, in 31%
-vier, en in 49% zes: insluiten kost hem drie tot zes tegels, en hij eet er twee
-per beurt.
+**Het Oog raakt ingesloten.** Het Oog is onverzwelgbaar, maar zijn *buren* niet.
+Hij hoeft geen weg te blokkeren — hij eet er een ring omheen. Gemeten over 400
+partijen heeft het Oog bij de opzet in 20% van de gevallen maar drie buren op het
+bord, in 31% vier, en in 49% zes: insluiten kost hem drie tot zes tegels, en hij
+eet er twee per beurt. Daarna kan zij **nooit meer winnen**, hoe vol haar teller
+ook staat.
 
-Zodra dat gebeurt kan zij **nooit meer winnen**, hoe vol haar teller ook staat.
-En omdat hij intussen zelf klem kan komen te zitten tussen verharde ketens die
-hij niet mag verzwelgen, loopt de partij daarna gewoon door tot het
-beurtenplafond. In de replay is dat pijnlijk goed te zien: een partij die op
-beurt 5 al beslist is en dan nog vijfenzeventig beurten doorloopt.
+**En hij kan uitgehongerd raken.** Een verharde keten is permanent van het bord
+af voor hem. Houdt zij haar ketens hard in plaats van ze te verzilveren — en dat
+is precies wat een goede speler doet met de keten die haar route draagt — dan
+zakt het aantal tegels dat hij ooit nog mag eten onder zijn drempel van 28. Dan
+kan **hij** niet meer winnen. Dat is §3.6 in nieuwe vorm: "zij verschanst zich
+eeuwig", nu met een regel die dat expliciet onaantastbaar maakt.
 
-In de matrix eindigt 5 tot 19% van alle partijen zo — haar teller vol, de weg
-weg, en niemand die wint. Dat telt bovenop de 7 tot 23% waarin hij er wél mee
-wint. De eerste groep is tegenspel; de tweede is dode tijd.
+Gemeten in de voorgestelde stand (K 3, M 1,5, drempel 13, pad springt 1) loopt
+een kwart van de partijen tot het beurtenplafond, en die splitsen zo:
+
+```
+oorzaak                              aandeel van de vastlopers
+──────────────────────────────────── ─────────────────────────
+het Oog is onbereikbaar              36%
+hij kan 28 rekenkundig niet meer halen  32%
+haar teller stond vol                17%
+```
+
+In de replay is dat pijnlijk goed te zien: een partij die op beurt 5 al beslist
+is en dan nog vijfenzeventig beurten doorloopt.
 
 ---
 
-## Twee kandidaat-reparaties, en waarom ze allebei te ver gaan
+## Vier kandidaat-reparaties
 
-Geen van beide staat in de opdracht; ze staan als knop in het lab en standaard
-uit, want de meting gaat eerst over de regel zoals hij is opgeschreven. Beide
-zijn gemeten in de basisstand (K 4, M 2, drempel 11) tegen de gemengde Nexus.
+Geen ervan staat in de opdracht; ze staan als knop in het lab en standaard uit,
+want de meting gaat eerst over de regel zoals hij is opgeschreven. De eerste twee
+zijn de voor de hand liggende — en ze schieten allebei door.
+
+**1 · Hof.** De directe buren van het Oog zijn ook onverzwelgbaar. Dit **maakt
+zijn winst rekenkundig onhaalbaar**: zes beschermde buren, plus het Oog, plus de
+Zetel zijn acht tegels die hij nooit mag verzwelgen, en 36 − 8 = 28 — precies
+zijn drempel. Hij zou letterlijk élke overgebleven tegel moeten opeten. Gemeten:
+hij wint 0 van de 150. Alleen bruikbaar als `needN` mee omlaag gaat.
+
+**2 · Onbereikbaar = niemand wint.** Het universum eindigt zodra er geen weg meer
+naar het Oog is. De dode tijd verdwijnt, maar **insluiten wás zijn winst en is nu
+een gelijkspel**: 41% van de partijen eindigt in "niemand wint" en hij wint er
+geen enkele meer.
+
+De volgende twee komen uit de vraag "wat zou het spel zélf doen?", en die werken
+wél — juist omdat ze elkaars bijwerking repareren.
+
+**3 · Het pad mag over de rand springen.** §2 kent al *"Reiken door de rand: over
+n aaneengesloten verdwenen tegels heen"*. Als reiken over een gat mag, kan de
+route dat ook. Hij houdt zijn tegenspel — hij moet nu bréde gaten eten in plaats
+van één tegel — zonder dat één hap de partij voorgoed onbeslisbaar maakt.
+`oversteek.maxSprong`, met een test die vastlegt dat één gat overbrugd wordt en
+twee niet.
+
+**4 · Onbereikbaar = de Nexus wint.** Sluit hij het Oog in, dan sloot het
+universum zich om haar heen en heeft hij gewonnen. Dat maakt van zijn insluiting
+een uitslag in plaats van een patstelling, en geeft hem een tweede weg naar de
+overwinning naast zijn tegelteller. `oversteek.onbereikbaar: 'nexusWint'`.
+
+Op de voorgestelde stand (K 3, M 1,5, drempel 13), 200 partijen per persona:
 
 ```
-variant                zij  hij  niemand  plafond  blokkade  dood  sprints  comeback
-────────────────────── ──── ──── ──────── ──────── ───────── ───── ──────── ────────
-zoals opgeschreven     59%  21%  0%       20%      14%       15%   32%      76%
-+ hof rond het Oog     76%   0%  0%       24%       0%       11%   32%      51%
-+ onbereikbaar eindigt 59%   0%  41%       0%       0%        0%   57%      73%
-+ allebei              76%   0%  22%       2%       0%        1%   45%      51%
+variant                     gretig   gemengd  defensief  plafond   sprints
+─────────────────────────── ──────── ──────── ────────── ───────── ────────
+zoals opgeschreven          32 / 39  45 / 29  39 / 31    27-31%    0
++ pad springt over 1 gat    40 / 35  41 / 36  42 / 36    23-26%    0
++ pad springt over 2 gaten  43 / 30  39 / 34  43 / 35    22-28%    0
++ onbereikbaar = hij wint   32 / 57  45 / 47  39 / 54     8-12%    24-30%
++ allebei (springt 1)       40 / 41  41 / 44             15-20%    ~0,5%
 ```
 
-**De hof maakt zijn winst rekenkundig onhaalbaar.** Beschermde buren van het Oog
-(zes), plus het Oog zelf, plus de Zetel: dat zijn acht tegels die hij nooit mag
-verzwelgen. 36 − 8 = 28 — precies zijn drempel. Hij zou dus letterlijk elke
-overgebleven tegel moeten opeten om te winnen, en dat lukt in nul van de 150
-partijen. Een hof is alleen bruikbaar als `needN` mee omlaag gaat.
-
-**"Onbereikbaar eindigt" haalt de dode tijd eruit, maar neemt hem zijn winst
-af.** Het plafond gaat naar nul, maar 41% van de partijen eindigt nu in "niemand
-wint" en hij wint er geen enkele meer. Dat is logisch: insluiten wás zijn winst,
-en nu is het een gelijkspel. Een kanttekening hierbij is eerlijk: de Nexus-bot
-mikt nog steeds op de route alsof hij er iets mee wint. Onder deze regel speelt
-hij dus aantoonbaar verkeerd, en het echte effect van de regel ligt vermoedelijk
-gunstiger dan deze rij laat zien.
-
-**De derde weg, die wél bij het spel past.** §2 kent al *"Reiken door de rand:
-over n aaneengesloten verdwenen tegels heen"*. Als reiken over een gat mag, kan
-de route dat ook. Dan houdt hij zijn tegenspel — hij moet bréde gaten eten in
-plaats van één tegel — zonder dat één hap de partij voorgoed onbeslisbaar maakt.
-Dat staat nu als `oversteek.maxSprong` in de engine, met een test die vastlegt
-dat één gat overbrugd wordt en twee niet.
+**Los werkt geen van de twee, samen wel.** "Hij wint" alleen maakt insluiten zo
+aantrekkelijk dat een kwart van de partijen een sprint wordt: hij rent naar de
+buren van het Oog en het is klaar. De sprong maakt insluiten juist duurder — hij
+moet bredere gaten eten — waardoor die rush niet meer loont: de sprints zakken
+van 24–30% naar één op de tweehonderd. En "hij wint" maakt van de insluitingen
+die tóch lukken een uitslag in plaats van tachtig dode beurten.
 
 ---
 
