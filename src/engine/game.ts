@@ -102,6 +102,17 @@ export class Game {
   ketenPunten = 0;
   verzilverd = 0;
   routeBreuken = 0;
+  /** hoe vaak hij zijn hele beurt inruilde voor één afgeslagen steen (§5A-2) */
+  stilstandGebruikt = 0;
+  /**
+   * Langs welke weg hij won. Drie wegen, en het advies-paneel wil weten of ze
+   * allemaal bespeeld worden:
+   *   tegels     — hij haalde zijn drempel terwijl haar teller nog niet vol was
+   *   route      — hij haalde zijn drempel terwijl zij al genoeg punten had,
+   *                dus hij won door de oversteek te ontzeggen
+   *   insluiting — het Oog werd onbereikbaar en dat is zijn winst
+   */
+  nexusWeg: 'tegels' | 'route' | 'insluiting' | null = null;
 
   // --- logboek ---
   trace: boolean;
@@ -821,6 +832,7 @@ export class Game {
   /** §5A-2 — hij slaat zijn hele beurt over en slaat 1 steen van een vat-tegel. */
   stilstandAfslag(c: CellKey): void {
     if (this.isVerhard(c)) return;
+    this.stilstandGebruikt += 1;
     this.breukCheck(c, 'stilstand');
     this.setW(c, this.wOf(c) - 1);
     this.box += 1;
@@ -911,6 +923,7 @@ export class Game {
             : `Het Oog is ingesloten. Er is geen weg meer; het universum eindigde.`,
         );
       }
+      if (nexusWint) this.nexusWeg = 'insluiting';
       this.done = nexusWint ? 'nexus' : 'niets';
     }
     this.noteerVerandering();
@@ -1038,6 +1051,8 @@ export class Game {
       ketenPunten: this.ketenPunten,
       verzilverd: this.verzilverd,
       routeBreuken: this.routeBreuken,
+      stilstandGebruikt: this.stilstandGebruikt,
+      nexusWeg: this.nexusWeg,
       trace: false,
       events: [],
       evI: 0,
@@ -1055,6 +1070,11 @@ export class Game {
   }
 
   result(uitslag: Uitslag): GameResult {
+    // Won hij op zijn tegelteller, dan bepaalt haar stand of dat een schone race
+    // was of een ontzegde oversteek.
+    if (uitslag === 'nexus' && this.nexusWeg === null) {
+      this.nexusWeg = this.pileL >= this.cfg.needL ? 'route' : 'tegels';
+    }
     let flips = 0;
     let lead: 'L' | 'N' | null = null;
     for (const [pl, pn] of this.hist) {
@@ -1091,6 +1111,8 @@ export class Game {
       tellerVol: this.pileL >= this.cfg.needL,
       routeOpenAanEind: this.cfg.oversteek.on && this.routeNaarOog() !== null,
       routeBreuken: this.routeBreuken,
+      stilstandGebruikt: this.stilstandGebruikt,
+      nexusWeg: this.nexusWeg,
     };
   }
 }

@@ -10,7 +10,38 @@
  *                                   één stand tegen alle drie de persona's
  */
 import { meeting2, type DeepPartial, type GameConfig } from '../src/engine/config';
-import { meet, regel, type Meting2 } from '../src/engine/meting2';
+import { meet, meetPersonas, regel, type Meting2 } from '../src/engine/meting2';
+import { beoordeel, type Advies, type Kleur } from '../src/engine/adviesregels';
+
+/** De stand die uit opdracht 2 als beste kwam: K3 · M1,5 · 13/28 · sprong 1 · nexusWint. */
+export const GEVALIDEERD_PATCH: DeepPartial<GameConfig> = {
+  verharden: { K: 3 },
+  verzilveren: { M: 1.5 },
+  needL: 13,
+  needN: 28,
+  oversteek: { maxSprong: 1, onbereikbaar: 'nexusWint' },
+  nexusBot: 'gemengd',
+};
+const GEVALIDEERD = meeting2(GEVALIDEERD_PATCH);
+
+const KLEURCODE: Record<Kleur, string> = {
+  groen: '\x1b[32m●\x1b[0m',
+  oranje: '\x1b[33m●\x1b[0m',
+  rood: '\x1b[31m●\x1b[0m',
+  grijs: '\x1b[90m○\x1b[0m',
+};
+
+function toonAdvies(a: Advies): void {
+  console.log(`\n  ${a.eind.toUpperCase()}  —  bepalend: ${a.bepalend}\n`);
+  for (const o of a.oordelen) {
+    console.log(`  ${KLEURCODE[o.kleur]} ${o.nr}. ${o.stelregel}`);
+    console.log(`     ${o.reden}`);
+    for (const s of o.signalen) {
+      console.log(`       ${KLEURCODE[s.kleur]} ${s.naam}: ${s.waarde}`);
+    }
+  }
+  console.log(`\n  regels aan: ${a.actieveRegels.join(', ')}`);
+}
 
 const cmd = process.argv[2] ?? 'stand';
 const N = Number(process.argv[3] ?? 100);
@@ -135,6 +166,31 @@ if (cmd === 'stand') {
         `wissels ${m.gemWissels.toFixed(1)} | comeback ${p(m.comebackPct)} | ` +
         `sprints ${String(m.sprints).padStart(3)}`,
     );
+  }
+} else if (cmd === 'advies') {
+  // npm run meet2 -- advies [n] [personas]
+  const metPersonas = process.argv[4] === 'personas';
+  const cfg = GEVALIDEERD;
+  kop(`Advies over de gevalideerde stand — ${N} seeds`);
+  const m = meet(cfg, N);
+  const a = beoordeel(m, cfg, metPersonas ? meetPersonas(cfg, N) : undefined);
+  toonAdvies(a);
+} else if (cmd === 'adviescheck') {
+  // dezelfde lat langs een paar met opzet slechte standen, om te zien of hij bijt
+  kop(`Werkt de lat? — ${N} seeds per stand`);
+  const standen: Array<[string, DeepPartial<GameConfig>]> = [
+    ['de gevalideerde stand', {}],
+    ['K 6 — verharden bijna onhaalbaar', { verharden: { K: 6 } }],
+    ['K 2 — verharden gratis', { verharden: { K: 2 } }],
+    ['drempel 5 — sprintspel', { needL: 5 }],
+    ['drempel 30 — uitzitten', { needL: 30 }],
+    ['verzilveren uit', { verzilveren: { on: false } }],
+    ['stilstand uit', { afslag: { stilstand: { on: false } } }],
+  ];
+  for (const [label, patch] of standen) {
+    const cfg = meeting2({ ...GEVALIDEERD_PATCH, ...patch } as DeepPartial<GameConfig>);
+    const a = beoordeel(meet(cfg, N), cfg);
+    console.log(`${label.padEnd(34)} ${a.eind.padEnd(30)} ← ${a.bepalend}`);
   }
 } else if (cmd === 'oog') {
   kop(`Het ingesloten Oog — ${N} seeds, tegen de gemengde Nexus`);

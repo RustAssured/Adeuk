@@ -4,7 +4,7 @@
  * en wint hij ooit door alleen de route weg te vreten?
  */
 import { Game } from './game';
-import type { GameConfig } from './config';
+import type { GameConfig, NexusPersona } from './config';
 import { mediaan } from './batch';
 import type { GameResult, Uitslag } from './types';
 
@@ -40,6 +40,18 @@ export interface Meting2 {
   oogIngeslotenPct: number;
   gemRouteBreuken: number;
   gemSporen: number;
+
+  // --- voor het advies-paneel (opdracht 3) ---
+  /** partijen waarin hij minstens één keer stilstond */
+  stilstandPct: number;
+  /** zijn winsten uitgesplitst naar weg, als aandeel van zijn winsten */
+  wegen: { tegels: number; route: number; insluiting: number };
+  /** aantal wegen dat hij daadwerkelijk bespeelde */
+  wegenBespeeld: number;
+  /** het grootste aandeel dat één weg inneemt (0 als hij niet won) */
+  grootsteWeg: number;
+  /** ketens die begonnen zijn: verhard plus gebroken */
+  ketensGestart: number;
 }
 
 export function meet(cfg: GameConfig, n: number, seedStart = 0): Meting2 {
@@ -59,7 +71,8 @@ export function vatSamen2(rs: GameResult[]): Meting2 {
   if (!n) throw new Error('vatSamen2 zonder partijen');
   let vast = 0, wissels = 0, comebacks = 0, beslist = 0, sprints = 0;
   let verhard = 0, gebroken = 0, los = 0, keten = 0, blokkade = 0, klemVol = 0, ingesloten = 0;
-  let breuken = 0, sporen = 0;
+  let breuken = 0, sporen = 0, stilstand = 0;
+  const wegen = { tegels: 0, route: 0, insluiting: 0 };
   const duren: number[] = [];
   for (const r of rs) {
     telling[r.uitslag]++;
@@ -82,6 +95,8 @@ export function vatSamen2(rs: GameResult[]): Meting2 {
     // niemand wint: haar teller vol, de weg weg, en de klok loopt af
     if (r.uitslag === 'timeout' && r.tellerVol && !r.routeOpenAanEind) klemVol++;
     if (r.oog >= 0 && !r.routeOpenAanEind && r.tellerVol) ingesloten++;
+    if (r.stilstandGebruikt > 0) stilstand++;
+    if (r.nexusWeg) wegen[r.nexusWeg]++;
   }
   const pct = (x: number) => (100 * x) / n;
   return {
@@ -108,6 +123,11 @@ export function vatSamen2(rs: GameResult[]): Meting2 {
     oogIngeslotenPct: pct(ingesloten),
     gemRouteBreuken: breuken / n,
     gemSporen: sporen / n,
+    stilstandPct: pct(stilstand),
+    wegen,
+    wegenBespeeld: Object.values(wegen).filter((x) => x > 0).length,
+    grootsteWeg: telling.nexus ? (100 * Math.max(...Object.values(wegen))) / telling.nexus : 0,
+    ketensGestart: (verhard + gebroken) / n,
   };
 }
 
@@ -123,3 +143,27 @@ export function regel(label: string, m: Meting2): string {
   );
 }
 
+
+/**
+ * Dezelfde seeds tegen alle drie de Nexus-persona's. Stelregel 8
+ * (herspeelbaarheid) is alleen te beoordelen als je weet hoeveel de winstkans
+ * meebeweegt met hoe goed er gespeeld wordt.
+ */
+export interface PersonaMeting {
+  perPersona: Partial<Record<NexusPersona, Meting2>>;
+  /** verschil tussen hoogste en laagste winstkans van de Laatste, in punten */
+  spreiding: number;
+}
+
+export const PERSONAS: NexusPersona[] = ['gretig', 'gemengd', 'defensief'];
+
+export function meetPersonas(cfg: GameConfig, n: number, seedStart = 0): PersonaMeting {
+  const perPersona: Partial<Record<NexusPersona, Meting2>> = {};
+  const kansen: number[] = [];
+  for (const p of PERSONAS) {
+    const m = meet({ ...cfg, nexusBot: p }, n, seedStart);
+    perPersona[p] = m;
+    kansen.push(m.verdeling.laatste);
+  }
+  return { perPersona, spreiding: Math.max(...kansen) - Math.min(...kansen) };
+}

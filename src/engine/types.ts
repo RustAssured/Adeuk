@@ -113,6 +113,10 @@ export interface GameResult {
   routeOpenAanEind: boolean;
   /** hoe vaak de route brak nadat hij er had gelegen */
   routeBreuken: number;
+  /** hoe vaak hij zijn hele beurt inruilde voor één afgeslagen steen */
+  stilstandGebruikt: number;
+  /** langs welke weg hij won, of null als hij niet won */
+  nexusWeg: 'tegels' | 'route' | 'insluiting' | null;
 }
 
 export type { CellKey };
