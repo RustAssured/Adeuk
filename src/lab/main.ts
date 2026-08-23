@@ -6,11 +6,15 @@
  */
 import './style.css';
 import { Game } from '../engine/game';
-import { meeting2, type GameConfig } from '../engine/config';
+import { gevalideerd, type GameConfig } from '../engine/config';
 import type { GameEvent, Snapshot, TileType, Uitslag } from '../engine/types';
 import { laadArt } from './art';
 import { Bord, routeUitSnapshot } from './board';
 import { bouwKnoppen, bouwZetlijst, el, toonBatch } from './panels';
+import {
+  bewaarAlsVergelijking, laadVergelijking, neemKnoppenOver, toonAdvies, wisVergelijking,
+  type Batchstand,
+} from './advies-paneel';
 import type { BatchBericht, BatchOpdracht } from './batch-worker';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -24,10 +28,10 @@ interface Partij {
   turns: number;
 }
 
-// Het lab opent in de meetstand van opdracht 2: de aanbevolen stand uit meting 1
-// plus de drie regels van de middenlaag. Alles is in het knoppenpaneel uit te
-// zetten, tot en met de v5-stand aan toe.
-const cfg: GameConfig = meeting2();
+// Het lab opent in de gevalideerde stand van opdracht 3: K 3, M 1,5, 13 om 28,
+// het pad mag één gat over en een ingesloten Oog is zijn winst. Alles is in het
+// knoppenpaneel uit te zetten, tot en met de v5-stand aan toe.
+const cfg: GameConfig = gevalideerd();
 
 let partij: Partij | null = null;
 let i = 0;
@@ -187,11 +191,43 @@ function knopSpeel(): void {
 // ----------------------------------------------------------------- batch
 
 let worker: Worker | null = null;
+let laatsteBatch: Batchstand | null = null;
+
+/**
+ * Het advies-paneel opnieuw tekenen. Elke batch die "aanbevolen" haalt wordt
+ * de vergelijkingsstand voor de volgende; de rest ligt ernaast.
+ */
+function tekenAdvies(stand: Batchstand): void {
+  laatsteBatch = stand;
+  const advies = toonAdvies($('tab-advies'), stand, laadVergelijking(), {
+    neemOver: (bron) => {
+      neemKnoppenOver(cfg, bron);
+      ververKnoppen();
+      if (partij) speelPartij(partij.seed);
+      kiesTab('knoppen');
+    },
+    zetVast: () => {
+      if (laatsteBatch) bewaarAlsVergelijking(laatsteBatch);
+      if (laatsteBatch) tekenAdvies(laatsteBatch);
+    },
+    wis: () => {
+      wisVergelijking();
+      if (laatsteBatch) tekenAdvies(laatsteBatch);
+    },
+  });
+  const stipje = $('tab-stip');
+  stipje.className =
+    'tab-stip ' +
+    (advies.eind === 'aanbevolen' ? 'groen' : advies.eind === 'afgeraden' ? 'rood' : 'oranje');
+  stipje.hidden = false;
+  if (advies.eind === 'aanbevolen') bewaarAlsVergelijking(stand);
+}
 
 function bouwBatchPaneel(): void {
   const vak = $('tab-batch');
   const aantal = el('input', { type: 'number', min: '10', max: '5000', step: '10' });
   aantal.value = '200';
+  const personas = el('input', { type: 'checkbox' });
   const start = el('button', { class: 'knop batchknop' }, ['draai de batch']);
   const status = el('p', { class: 'bij' }, ['']);
   const uitvoer = el('div');
@@ -204,9 +240,17 @@ function bouwBatchPaneel(): void {
     uitvoer.replaceChildren();
     worker.onmessage = (e: MessageEvent<BatchBericht>) => {
       if (e.data.soort === 'voortgang') {
-        status.textContent = `bezig… ${e.data.klaar} / ${e.data.totaal}`;
+        status.textContent = `bezig… ${e.data.klaar} / ${e.data.totaal} · ${e.data.wat}`;
       } else {
         status.textContent = `klaar — ${e.data.metriek.n} potjes met de huidige knoppen.`;
+        tekenAdvies({
+          cfg: JSON.parse(JSON.stringify(cfg)),
+          meting: e.data.middenlaag,
+          personas: e.data.personas,
+          n,
+          seedStart: 0,
+          tijd: Date.now(),
+        });
         toonBatch(
           uitvoer,
           e.data.metriek,
@@ -221,7 +265,12 @@ function bouwBatchPaneel(): void {
         );
       }
     };
-    const opdracht: BatchOpdracht = { cfg: JSON.parse(JSON.stringify(cfg)), n, seedStart: 0 };
+    const opdracht: BatchOpdracht = {
+      cfg: JSON.parse(JSON.stringify(cfg)),
+      n,
+      seedStart: 0,
+      personas: personas.checked,
+    };
     worker.postMessage(opdracht);
   };
 
@@ -233,6 +282,15 @@ function bouwBatchPaneel(): void {
           'De zoekbot is een stuk trager dan de gretige — begin klein.',
       ]),
       el('div', { class: 'regel' }, [el('label', {}, ['aantal potjes']), aantal]),
+      el('div', { class: 'regel' }, [
+        el('label', {}, [
+          'ook tegen de andere persona’s',
+          el('small', {}, [
+            'de enige manier om stelregel 8 uit het grijs te halen — en ongeveer drie keer zo lang',
+          ]),
+        ]),
+        el('span', { class: 'tuimel' }, [personas, el('span', {})]),
+      ]),
       start,
       status,
     ]),
@@ -246,7 +304,7 @@ function kiesTab(naam: string): void {
   for (const b of $('tabs').querySelectorAll('button')) {
     b.classList.toggle('aan', b.dataset.tab === naam);
   }
-  for (const n of ['replay', 'knoppen', 'batch']) {
+  for (const n of ['replay', 'knoppen', 'batch', 'advies']) {
     $(`tab-${n}`).hidden = n !== naam;
   }
 }

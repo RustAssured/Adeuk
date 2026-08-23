@@ -136,12 +136,20 @@ describe('stelregel 2 — de regeltelling is een proxy, geen meting', () => {
     expect(bij(a, 2).reden).toContain('waarschuwing');
   });
 
-  it('kan een groen advies wel van groen halen, maar nooit afkeuren', () => {
+  it('beslist niet mee over het advies, maar staat er wel naast', () => {
     const veel = meeting2({ oversteek: { hof: true, maxSprong: 1, onbereikbaar: 'nexusWint' } });
-    expect(beoordeel(gezond(), veel).eind).toBe('aanbevolen met kanttekening');
-    expect(beoordeel(gezond(), veel).bepalend).toContain('stelregel 2');
-    // en hij maakt een reeds rood advies niet erger dan rood
-    expect(beoordeel(gezond({ vastlopers: 25 }), veel).bepalend).toContain('stelregel 4');
+    expect(actieveRegels(veel).length).toBeGreaterThan(DREMPELS.maxRegels);
+    const a = beoordeel(gezond(), veel);
+    // het advies volgt alleen de meetbare regels — die staan hier allemaal groen
+    expect(a.eind).toBe('aanbevolen');
+    expect(a.bepalend).not.toContain('stelregel 2');
+    // maar de waarschuwing is er, met het getal erin
+    expect(a.waarschuwing).toContain('10 regels');
+    expect(a.waarschuwing).toContain('geen meting');
+  });
+
+  it('waarschuwt niet als het aantal regels binnen de grens blijft', () => {
+    expect(beoordeel(gezond(), CFG).waarschuwing).toBeUndefined();
   });
 
   it('noemt de regels die aan staan bij naam', () => {

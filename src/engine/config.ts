@@ -261,6 +261,27 @@ export function meeting2(patch: DeepPartial<GameConfig> = {}): GameConfig {
   return pasToe(basis, patch);
 }
 
+/**
+ * De stand die uit meting 2 als beste kwam en die opdracht 3 als uitgangspunt
+ * neemt: K 3 · M 1,5 · 13 sporen tegen 28 tegels · het pad mag één gat over ·
+ * een ingesloten Oog is zijn winst · stilstand aan.
+ *
+ * Gemeten over 200 seeds tegen de gemengde Nexus: 42 om 41, geen sprints, 59%
+ * van de ketens verhardt, 2,6 verharde tegen 1,8 gebroken ketens per partij,
+ * 18% klem. Zie docs/BEVINDINGEN2.md.
+ */
+export function gevalideerd(patch: DeepPartial<GameConfig> = {}): GameConfig {
+  const basis = meeting2({
+    needL: 13,
+    verharden: { K: 3 },
+    verzilveren: { M: 1.5 },
+    oversteek: { maxSprong: 1, onbereikbaar: 'nexusWint' },
+    afslag: { stilstand: { on: true } },
+    nexusBot: 'gemengd',
+  });
+  return pasToe(basis, patch);
+}
+
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };

@@ -71,6 +71,12 @@ export interface Advies {
   eind: Eindadvies;
   /** welke stelregel het eindadvies bepaalde */
   bepalend: string;
+  /**
+   * Een waarschuwing die náást het advies staat en er niet in meeweegt, omdat
+   * hij niet op een meting rust. Op dit moment alleen de regeltelling van
+   * stelregel 2.
+   */
+  waarschuwing?: string;
   oordelen: Oordeel[];
   /** de regels die op dit moment aan staan — de proxy voor stelregel 2 */
   actieveRegels: string[];
@@ -391,11 +397,15 @@ export function beoordeel(
       bepalend = `stelregel ${o.nr} · ${o.stelregel}`;
     }
   }
-  // de proxy van stelregel 2 kan het advies niet afkeuren, wel van groen halen
-  if (ergste === 'groen' && regels.length > DREMPELS.maxRegels) {
-    ergste = 'oranje';
-    bepalend = `stelregel 2 · ${regels.length} regels tegelijk aan`;
-  }
+  // De regeltelling van stelregel 2 is een schatting, geen meting, en beslist
+  // dus niet mee over het advies. Hij staat er wel naast, hard genoeg om te
+  // zien: een spel met vijftien regels tegelijk kan op alle cijfers kloppen en
+  // aan tafel alsnog onspeelbaar zijn.
+  const waarschuwing =
+    regels.length > DREMPELS.maxRegels
+      ? `Er staan ${regels.length} regels tegelijk aan, boven de ${DREMPELS.maxRegels} die nog ` +
+        'uit te leggen zijn. Dat is een schatting, geen meting, en weegt dus niet mee in dit advies.'
+      : undefined;
 
   return {
     eind:
@@ -405,6 +415,7 @@ export function beoordeel(
           ? 'aanbevolen met kanttekening'
           : 'aanbevolen',
     bepalend,
+    waarschuwing,
     oordelen,
     actieveRegels: regels,
   };

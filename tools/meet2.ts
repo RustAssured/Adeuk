@@ -9,7 +9,7 @@
  *   npm run meet2 -- beste [n] [K] [M] [drempel] [hof] [onbereikbaar] [sprong] [needN]
  *                                   één stand tegen alle drie de persona's
  */
-import { meeting2, type DeepPartial, type GameConfig } from '../src/engine/config';
+import { gevalideerd, meeting2, type DeepPartial, type GameConfig } from '../src/engine/config';
 import { meet, meetPersonas, regel, type Meting2 } from '../src/engine/meting2';
 import { beoordeel, type Advies, type Kleur } from '../src/engine/adviesregels';
 
@@ -22,7 +22,7 @@ export const GEVALIDEERD_PATCH: DeepPartial<GameConfig> = {
   oversteek: { maxSprong: 1, onbereikbaar: 'nexusWint' },
   nexusBot: 'gemengd',
 };
-const GEVALIDEERD = meeting2(GEVALIDEERD_PATCH);
+const GEVALIDEERD = gevalideerd();
 
 const KLEURCODE: Record<Kleur, string> = {
   groen: '\x1b[32m●\x1b[0m',
@@ -188,7 +188,7 @@ if (cmd === 'stand') {
     ['stilstand uit', { afslag: { stilstand: { on: false } } }],
   ];
   for (const [label, patch] of standen) {
-    const cfg = meeting2({ ...GEVALIDEERD_PATCH, ...patch } as DeepPartial<GameConfig>);
+    const cfg = gevalideerd(patch);
     const a = beoordeel(meet(cfg, N), cfg);
     console.log(`${label.padEnd(34)} ${a.eind.padEnd(30)} ← ${a.bepalend}`);
   }

@@ -363,3 +363,176 @@ input[type='range']::-moz-range-thumb {
   .kop-rechts { grid-column: 2; justify-self: end; }
   .kop-mid { grid-column: 1 / -1; grid-row: 2; }
 }
+
+/* ------------------------------------------------------------- advies */
+
+:root {
+  /* Vier kleuren die naast goud en aantrekking kunnen staan zonder ermee te
+     vechten. Grijs is expres kleurloos: dat is het punt van grijs. */
+  --oordeel-groen: #5fb99a;
+  --oordeel-oranje: #dd9440;
+  --oordeel-rood: #cf5b54;
+  --oordeel-grijs: #6b6480;
+}
+
+.stip {
+  width: 9px; height: 9px; border-radius: 999px; flex: none;
+  display: inline-block; box-shadow: 0 0 9px -1px currentColor;
+}
+.stip.klein { width: 6px; height: 6px; box-shadow: none; }
+.stip.groen { background: var(--oordeel-groen); color: var(--oordeel-groen); }
+.stip.oranje { background: var(--oordeel-oranje); color: var(--oordeel-oranje); }
+.stip.rood { background: var(--oordeel-rood); color: var(--oordeel-rood); }
+.stip.grijs {
+  background: transparent; box-shadow: none;
+  border: 1px solid var(--oordeel-grijs);
+}
+
+.tab-stip {
+  width: 6px; height: 6px; border-radius: 999px;
+  display: inline-block; margin-left: 6px; vertical-align: 1px;
+}
+.tab-stip.groen { background: var(--oordeel-groen); }
+.tab-stip.oranje { background: var(--oordeel-oranje); }
+.tab-stip.rood { background: var(--oordeel-rood); }
+
+/* de uitspraak */
+.banier {
+  position: relative;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--lijn);
+  border-radius: 9px;
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
+    var(--nacht-op);
+  overflow: hidden;
+}
+.banier::before {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 3px;
+}
+.banier.groen::before { background: var(--oordeel-groen); }
+.banier.oranje::before { background: var(--oordeel-oranje); }
+.banier.rood::before { background: var(--oordeel-rood); }
+.banier.groen { box-shadow: inset 0 0 60px -30px var(--oordeel-groen); }
+.banier.oranje { box-shadow: inset 0 0 60px -30px var(--oordeel-oranje); }
+.banier.rood { box-shadow: inset 0 0 60px -30px var(--oordeel-rood); }
+
+.b-woord {
+  font-family: var(--serif);
+  font-size: 27px; line-height: 1.1; font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.banier.groen .b-woord { color: var(--oordeel-groen); }
+.banier.oranje .b-woord { color: var(--oordeel-oranje); }
+.banier.rood .b-woord { color: var(--oordeel-rood); }
+.b-bepalend { margin-top: 6px; font-size: 12.5px; color: var(--inkt); }
+.b-bron {
+  margin-top: 7px; font-family: var(--mono); font-size: 10.5px;
+  color: var(--inkt-zacht);
+}
+
+/* de vergelijkingsstand */
+.vergelijking {
+  margin-top: 14px; padding: 13px 14px;
+  border: 1px dashed var(--lijn); border-radius: 9px;
+}
+.v-kop {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--inkt-zacht);
+}
+.vergelijking p.bij { margin: 8px 0 0; font-size: 11.5px; color: var(--inkt-zacht); }
+.waarschuwing {
+  margin: 8px 0 0; font-size: 11.5px; color: var(--oordeel-oranje);
+}
+.voorna {
+  display: grid; grid-template-columns: 1fr auto auto auto;
+  gap: 2px 12px; margin-top: 11px;
+  font-family: var(--mono); font-size: 11.5px;
+}
+.vn-kop {
+  font-family: var(--sans); font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--inkt-zacht);
+  text-align: right; padding-bottom: 4px; border-bottom: 1px solid var(--lijn);
+}
+.vn-naam { font-family: var(--sans); color: var(--inkt-zacht); font-size: 11.5px; }
+.vn-was { color: var(--inkt-zacht); text-align: right; }
+.vn-nu { text-align: right; }
+.vn-d { text-align: right; }
+.vn-d.nul { color: #3d3752; }
+.vn-d.op { color: var(--goud-zacht); }
+.vn-d.neer { color: var(--aantrekking); }
+
+.v-knopjes { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.knop.klein { padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+.knop.klein.stil { color: var(--inkt-zacht); }
+
+/* de negen */
+.oordelen { display: grid; gap: 7px; }
+.oordeel {
+  padding: 11px 12px;
+  border: 1px solid var(--lijn);
+  border-left: 2px solid var(--lijn);
+  border-radius: 7px;
+  background: var(--nacht-op);
+}
+.oordeel.groen { border-left-color: var(--oordeel-groen); }
+.oordeel.oranje { border-left-color: var(--oordeel-oranje); }
+.oordeel.rood { border-left-color: var(--oordeel-rood); }
+.oordeel.grijs {
+  background: transparent;
+  border-style: dashed;
+  border-left: 1px dashed var(--lijn);
+  opacity: 0.72;
+}
+
+.o-kop { display: flex; align-items: center; gap: 8px; }
+.o-nr {
+  font-family: var(--mono); font-size: 10.5px; color: var(--inkt-zacht);
+}
+.o-naam { font-size: 12.5px; font-weight: 500; }
+.oordeel.grijs .o-naam { font-weight: 400; color: var(--inkt-zacht); }
+.o-merk {
+  margin-left: auto; font-size: 9px; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--oordeel-grijs);
+  border: 1px solid var(--lijn); border-radius: 999px; padding: 2px 7px;
+  white-space: nowrap;
+}
+.o-verschoven {
+  margin-left: auto; display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--inkt-zacht);
+}
+.o-reden {
+  margin: 7px 0 0; font-size: 12px; line-height: 1.5;
+  color: var(--inkt); opacity: 0.86;
+}
+.oordeel.grijs .o-reden { color: var(--inkt-zacht); opacity: 1; font-style: italic; }
+
+.o-signalen { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.signaal {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 8px; border-radius: 999px;
+  border: 1px solid var(--lijn); background: #14101f;
+  font-size: 10.5px; color: var(--inkt-zacht);
+}
+.signaal b { font-family: var(--mono); font-size: 10.5px; color: var(--inkt); font-weight: 500; }
+.signaal.oranje b { color: var(--oordeel-oranje); }
+.signaal.rood b { color: var(--oordeel-rood); }
+
+.regelchips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--lijn); background: #14101f;
+  font-size: 10.5px; color: var(--inkt-zacht);
+}
+
+.b-waarschuwing {
+  margin-top: 9px; padding: 7px 10px;
+  border: 1px dashed var(--lijn); border-radius: 6px;
+  font-size: 11.5px; line-height: 1.5; color: var(--inkt-zacht);
+}
+
+/* de titel mag niet in de verdrukking komen door het merkje ernaast */
+.o-kop { flex-wrap: wrap; row-gap: 5px; }
+.o-naam { flex: 1 1 auto; min-width: 120px; }
+.o-merk { font-size: 8.5px; letter-spacing: 0.1em; padding: 2px 6px; }
